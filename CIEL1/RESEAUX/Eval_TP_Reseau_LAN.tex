@@ -87,7 +87,6 @@
   \def\netDeux{172.16}\def\clDeux{B}\def\mDeux{255.255.0.0}\def\gwDeux{172.16.255.254}\def\cidrDeux{/16}
   \def\netTrois{192.168.30}\def\gwTrois{192.168.30.254}
   \def\nUn{192.168.10.0}\def\nTrois{192.168.30.0}\def\adrUn{192.168.10.0/24}\def\adrDeux{172.16.0.0/16}\def\adrTrois{192.168.30.0/24}
-  \def\resB{2}\def\netBfull{172.16.0.0}\def\bcB{172.16.255.255}
   \def\dhUn{Laptop2}\def\dhDeux{Laptop3}\def\dhTrois{PC3}
   \def\figdevices{%
     \dev{srv}{0.9}{1.0}{Server-PT}{Server0} \dev{pc}{2.9}{2.0}{PC-PT}{PC0} \dev{lap}{4.9}{1.0}{Laptop-PT}{Laptop0}
@@ -117,7 +116,6 @@
   \def\netDeux{192.168.50}\def\clDeux{C}\def\mDeux{255.255.255.0}\def\gwDeux{192.168.50.254}\def\cidrDeux{/24}
   \def\netTrois{192.168.60}\def\gwTrois{192.168.60.254}
   \def\nUn{172.20.0.0}\def\nTrois{192.168.60.0}\def\adrUn{172.20.0.0/16}\def\adrDeux{192.168.50.0/24}\def\adrTrois{192.168.60.0/24}
-  \def\resB{1}\def\netBfull{172.20.0.0}\def\bcB{172.20.255.255}
   \def\dhUn{PC3}\def\dhDeux{PC4}\def\dhTrois{Laptop2}
   \def\figdevices{%
     \dev{pc}{1.2}{2.0}{PC-PT}{PC0} \dev{srv}{3.0}{1.0}{Server-PT}{Server0} \dev{pc}{4.8}{2.0}{PC-PT}{PC1}
@@ -148,7 +146,7 @@
 \fancyhf{}
 \renewcommand{\headrulewidth}{0pt}
 \fancyfoot[L]{\footnotesize\itshape\color{grisfoot}Évaluation — Routeur et cahier des charges — Sujet \variante\ifcorrige\ — CORRIGÉ\fi}
-\fancyfoot[R]{\footnotesize\color{grisfoot}\thepage/3}
+\fancyfoot[R]{\footnotesize\color{grisfoot}\thepage/2}
 
 \setlist{itemsep=0pt,topsep=2pt,parsep=0pt}
 \setlength{\parindent}{0pt}
@@ -210,17 +208,17 @@ Relevez votre adressage.}
 \begin{tabhotes}\hostsTrois\end{tabhotes}
 \bareme{Mêmes critères que Q1 et Q2.}
 
-\question{4}{1 pt}{Quel équipement avez-vous ajouté pour relier les hôtes de chaque réseau ? Justifiez ce choix. À ce stade,
+\question{4}{2 pts}{Quel équipement avez-vous ajouté pour relier les hôtes de chaque réseau ? Justifiez ce choix. À ce stade,
 un hôte du réseau 1 peut-il joindre un hôte du réseau 2 ? Pourquoi ?}
 \zone{2.2cm}{Un \textbf{commutateur} par réseau : il n'envoie chaque trame que sur le port du destinataire (table MAC),
 un domaine de collision par port, contrairement au concentrateur. \textbf{Non} : les deux hôtes sont dans des réseaux
-différents et aucun routeur ne les relie.}
+différents et aucun routeur ne les relie. \emph{1 pt choix justifié, 1 pt réponse justifiée.}}
 
 \cdcq{final}{les réseaux 1, 2 et 3 doivent pouvoir communiquer ensemble. Vous utiliserez \textbf{un seul routeur}
 Cisco 2911 nommé \ip{R0} : chaque réseau est relié à une interface du routeur (G0/0, G0/1, G0/2), dont l'adresse est la
 passerelle du réseau. Toutes les solutions matérielles et logicielles sont possibles.}
 
-\question{5}{2 pts}{Ajoutez et configurez le routeur. Complétez le tableau.}
+\question{5}{3 pts}{Ajoutez et configurez le routeur. Complétez le tableau.}
 {\footnotesize\renewcommand{\arraystretch}{1.05}
 \begin{tabularx}{\linewidth}{|l|C|C|C|C|}
   \hline
@@ -230,7 +228,7 @@ passerelle du réseau. Toutes les solutions matérielles et logicielles sont pos
   \hl GigabitEthernet0/2 & \sol{réseau 3} & \sol{\gwTrois} & \sol{255.255.255.0} & \sol{On} \\ \hline
   \hl Câble commutateur $\leftrightarrow$ routeur & \multicolumn{4}{c|}{\sol{câble droit}} \\ \hline
 \end{tabularx}}
-\bareme{0,5 pt par interface juste et activée sur le .pkt (1,5) + 0,5 pour le câble. L'affectation G0/x $\leftrightarrow$ réseau est libre.}
+\bareme{0,75 pt par interface juste et activée sur le .pkt (2,25) + 0,75 pour le câble. L'affectation G0/x $\leftrightarrow$ réseau est libre.}
 
 \question{6}{3 pts}{Effacez temporairement la passerelle de PC0 et envoyez, en mode « Simulation », une trame de PC0 vers
 Server1 ; remettez la passerelle et recommencez. Décrivez les deux résultats. Quel est le rôle de la passerelle ?
@@ -241,36 +239,19 @@ La \textbf{passerelle} est l'adresse de l'interface du routeur située dans le r
 les autres réseaux. \textbf{Oui} : Server1 doit renvoyer une réponse vers un autre réseau (celui de PC0) ; sans passerelle il
 ne peut pas répondre. \emph{0,5 + 0,5 résultats, 1 rôle, 1 passerelle de Server1.}}
 
-\newpage
-\question{7}{4 pts}{Réalisez les tests suivants et faites viser chaque test réussi.}
+\question{7}{6 pts}{Réalisez les tests suivants et faites viser chaque test réussi.}
 {\small\renewcommand{\arraystretch}{1.05}
 \begin{tabularx}{\linewidth}{|c|l|l|C|c|}
   \hline
   \textbf{N°} & \textbf{Source} & \textbf{Destination} & \textbf{Commande / action} & \textbf{Visa prof.} \\ \hline
   \testrows
 \end{tabularx}}
-\bareme{0,8 pt par test visé. Les tests 2 à 5 passent par le routeur. Premier ping inter-réseaux parfois en échec (ARP) : relancer.}
-
-\question{8}{1,5 pt}{Calculez l'adresse réseau, l'adresse de diffusion « broadcast » et le nombre d'hôtes adressables du
-réseau \resB{} (classe B).}
-\zone{1.4cm}{Réseau \textbf{\netBfull}, masque 255.255.0.0 ; diffusion \textbf{\bcB} ; $2^{16}-2 =$ \textbf{65\,534} hôtes.
-\emph{0,5 pt par élément.}}
-
-\question{9}{1 pt}{La passerelle par défaut du poste « PC0 » fait-elle partie du réseau 1 ? Justifiez votre réponse.}
-\zone{1.6cm}{\textbf{Oui} : \gwUn{} a la même adresse réseau que PC0 (\adrUn) ; c'est l'adresse de l'interface de R0
-côté réseau 1. Une passerelle doit toujours appartenir au réseau de l'hôte, sinon celui-ci ne peut pas la joindre.}
-
-\question{10}{1,5 pt}{Si l'on efface la passerelle de \dhTrois{} (réseau 3), que devient le test n°3 ? Expliquez en
-décrivant le trajet de la requête et de la réponse.}
-\zone{2.4cm}{Le test \textbf{échoue}. La requête de PC0 part vers sa passerelle, le routeur la transmet dans le réseau 3 et
-elle atteint \dhTrois. Mais \dhTrois{} n'a \textbf{plus de passerelle} : la réponse est destinée à un autre réseau, il ne sait
-pas à qui l'envoyer. Chaque hôte doit connaître sa passerelle pour que l'aller \emph{et} le retour fonctionnent.
-\emph{0,5 résultat, 1 explication.}}
+\bareme{1,2 pt par test visé. Les tests 2 à 5 passent par le routeur. Premier ping inter-réseaux parfois en échec (ARP) : relancer.}
 
 \vfill
 {\small\begin{tabularx}{\linewidth}{Xr}
 \toprule
-\textbf{Barème :} Q1 /2 — Q2 /2 — Q3 /2 — Q4 /1 — Q5 /2 — Q6 /3 — Q7 /4 — Q8 /1,5 — Q9 /1 — Q10 /1,5 & \textbf{Total /20} \\
+\textbf{Barème :} Q1 /2 — Q2 /2 — Q3 /2 — Q4 /2 — Q5 /3 — Q6 /3 — Q7 /6 & \textbf{Total /20} \\
 \bottomrule
 \end{tabularx}}
 
