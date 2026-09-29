@@ -1,4 +1,4 @@
-% Évaluation — Trois réseaux et trois routeurs (BTS CIEL 1re année) — sujets A et B
+% Évaluation — Trois réseaux reliés par un routeur (BTS CIEL 1re année) — sujets A et B
 % Compilation (4 PDF) :
 %   pdflatex -jobname=Eval_Reseau_SujetA   "\def\variante{A}\def\modecorrige{0}\input{Eval_TP_Reseau_LAN.tex}"
 %   pdflatex -jobname=Eval_Reseau_SujetB   "\def\variante{B}\def\modecorrige{0}\input{Eval_TP_Reseau_LAN.tex}"
@@ -87,7 +87,6 @@
   \def\netDeux{172.16}\def\clDeux{B}\def\mDeux{255.255.0.0}\def\gwDeux{172.16.255.254}\def\cidrDeux{/16}
   \def\netTrois{192.168.30}\def\gwTrois{192.168.30.254}
   \def\nUn{192.168.10.0}\def\nTrois{192.168.30.0}\def\adrUn{192.168.10.0/24}\def\adrDeux{172.16.0.0/16}\def\adrTrois{192.168.30.0/24}
-  \def\lkUn{192.168.100}\def\lkDeux{192.168.200}
   \def\resB{2}\def\netBfull{172.16.0.0}\def\bcB{172.16.255.255}
   \def\dhUn{Laptop2}\def\dhDeux{Laptop3}\def\dhTrois{PC3}
   \def\figdevices{%
@@ -115,7 +114,6 @@
   \def\netDeux{192.168.50}\def\clDeux{C}\def\mDeux{255.255.255.0}\def\gwDeux{192.168.50.254}\def\cidrDeux{/24}
   \def\netTrois{192.168.60}\def\gwTrois{192.168.60.254}
   \def\nUn{172.20.0.0}\def\nTrois{192.168.60.0}\def\adrUn{172.20.0.0/16}\def\adrDeux{192.168.50.0/24}\def\adrTrois{192.168.60.0/24}
-  \def\lkUn{192.168.150}\def\lkDeux{192.168.160}
   \def\resB{1}\def\netBfull{172.20.0.0}\def\bcB{172.20.255.255}
   \def\dhUn{PC3}\def\dhDeux{PC4}\def\dhTrois{Laptop2}
   \def\figdevices{%
@@ -143,7 +141,7 @@
 \pagestyle{fancy}
 \fancyhf{}
 \renewcommand{\headrulewidth}{0pt}
-\fancyfoot[L]{\footnotesize\itshape\color{grisfoot}Évaluation — Routeurs et cahier des charges — Sujet \variante\ifcorrige\ — CORRIGÉ\fi}
+\fancyfoot[L]{\footnotesize\itshape\color{grisfoot}Évaluation — Routeur et cahier des charges — Sujet \variante\ifcorrige\ — CORRIGÉ\fi}
 \fancyfoot[R]{\footnotesize\color{grisfoot}\thepage/3}
 
 \setlist{itemsep=0pt,topsep=2pt,parsep=0pt}
@@ -153,7 +151,7 @@
 \begin{document}
 
 \begin{center}
-  {\Large\bfseries Évaluation — Trois réseaux, trois routeurs \quad \fcolorbox{black}{white}{\ SUJET \variante\ }\par}
+  {\Large\bfseries Évaluation — Trois réseaux interconnectés \quad \fcolorbox{black}{white}{\ SUJET \variante\ }\par}
   \vspace{1pt}
   {\bfseries Cahier des charges et interconnexion — BTS CIEL 1re année — durée : 2 heures\par}
   \ifcorrige\vspace{2pt}{\bfseries\color{corr}CORRIGÉ ET BARÈME — document enseignant}\par\fi
@@ -225,43 +223,32 @@ un hôte du réseau 1 peut-il joindre un hôte du réseau 2 ? Pourquoi ?}
 un domaine de collision par port, contrairement au concentrateur. \textbf{Non} : les deux hôtes sont dans des réseaux
 différents et aucun routeur ne les relie.}
 
-\cdcq{final}{les réseaux 1, 2 et 3 doivent pouvoir communiquer ensemble. Chaque réseau dispose de \textbf{son propre routeur}
-Cisco 2911 (\ip{R1}, \ip{R2}, \ip{R3}), dont l'interface côté réseau local est la passerelle. Les routeurs sont reliés
-\textbf{en chaîne} : R1–R2 sur \ip{\lkUn.0/24} (R1 = .1, R2 = .2) et R2–R3 sur \ip{\lkDeux.0/24} (R2 = .1, R3 = .2).
-Routage \textbf{statique} uniquement.}
-\begin{aide}\textbf{Aide — route statique.} Routeur $\to$ \textbf{Config} $\to$ \textbf{ROUTING / Static} : \emph{Network}
-(réseau à atteindre), \emph{Mask}, \emph{Next Hop} (adresse du routeur voisin sur la liaison), puis \textbf{Add}. Route par
-défaut : \emph{Network} \texttt{0.0.0.0}, \emph{Mask} \texttt{0.0.0.0}. Un routeur connaît d'office ses réseaux directement
-connectés. Pensez à activer chaque interface (\emph{Port Status : On}).\end{aide}
+\cdcq{final}{les réseaux 1, 2 et 3 doivent pouvoir communiquer ensemble. Vous utiliserez \textbf{un seul routeur}
+Cisco 2911 nommé \ip{R0} : chaque réseau est relié à une interface du routeur (G0/0, G0/1, G0/2), dont l'adresse est la
+passerelle du réseau. Toutes les solutions matérielles et logicielles sont possibles.}
 
-\question{5}{2 pts}{Complétez l'adressage des interfaces des trois routeurs.}
-{\footnotesize\setlength{\tabcolsep}{3pt}\renewcommand{\arraystretch}{1.05}
-\begin{tabularx}{\linewidth}{|l|C|C||l|C|C|}
+\question{5}{2 pts}{Ajoutez et configurez le routeur. Complétez le tableau.}
+{\footnotesize\renewcommand{\arraystretch}{1.05}
+\begin{tabularx}{\linewidth}{|l|C|C|C|C|}
   \hline
-  \textbf{Interface} & \textbf{Adresse IP} & \textbf{Masque} & \textbf{Interface} & \textbf{Adresse IP} & \textbf{Masque} \\ \hline
-  \hl R1 — côté réseau 1 & \sol{\gwUn} & \sol{\mUn} & R2 — côté R3 & \sol{\lkDeux.1} & \sol{255.255.255.0} \\ \hline
-  \hl R1 — côté R2 & \sol{\lkUn.1} & \sol{255.255.255.0} & R3 — côté R2 & \sol{\lkDeux.2} & \sol{255.255.255.0} \\ \hline
-  \hl R2 — côté R1 & \sol{\lkUn.2} & \sol{255.255.255.0} & R3 — côté réseau 3 & \sol{\gwTrois} & \sol{255.255.255.0} \\ \hline
-  \hl R2 — côté réseau 2 & \sol{\gwDeux} & \sol{\mDeux} & \multicolumn{3}{c|}{\cellcolor{black!8}} \\ \hline
+  \textbf{Interface de R0} & \textbf{Réseau relié} & \textbf{Adresse IP} & \textbf{Masque} & \textbf{Port Status} \\ \hline
+  \hl GigabitEthernet0/0 & \sol{réseau 1} & \sol{\gwUn} & \sol{\mUn} & \sol{On} \\ \hline
+  \hl GigabitEthernet0/1 & \sol{réseau 2} & \sol{\gwDeux} & \sol{\mDeux} & \sol{On} \\ \hline
+  \hl GigabitEthernet0/2 & \sol{réseau 3} & \sol{\gwTrois} & \sol{255.255.255.0} & \sol{On} \\ \hline
+  \hl Câble commutateur $\leftrightarrow$ routeur & \multicolumn{4}{c|}{\sol{câble droit}} \\ \hline
 \end{tabularx}}
-\bareme{0,25 pt par interface juste et activée sur le .pkt (1,75) + 0,25 pour le câblage croisé entre routeurs.}
+\bareme{0,5 pt par interface juste et activée sur le .pkt (1,5) + 0,5 pour le câble. L'affectation G0/x $\leftrightarrow$ réseau est libre.}
 
 %==========================================================================
 \newpage
-\question{6}{2 pts}{Complétez les routes statiques à ajouter sur chaque routeur (une ligne peut rester vide), puis configurez-les.}
-{\footnotesize\renewcommand{\arraystretch}{1.05}
-\begin{tabularx}{\linewidth}{|l|C|C|C|}
-  \hline
-  \textbf{Routeur} & \textbf{Réseau de destination (Network)} & \textbf{Masque (Mask)} & \textbf{Routeur suivant (Next Hop)} \\ \hline
-  \hl R1 & \sol{0.0.0.0} & \sol{0.0.0.0} & \sol{\lkUn.2} \\ \hline
-  \hl R1 & \sol{\textit{(ou routes vers réseaux 2, 3 et \lkDeux.0)}} & & \\ \hline
-  \hl R2 & \sol{\nUn} & \sol{\mUn} & \sol{\lkUn.1} \\ \hline
-  \hl R2 & \sol{\nTrois} & \sol{255.255.255.0} & \sol{\lkDeux.2} \\ \hline
-  \hl R3 & \sol{0.0.0.0} & \sol{0.0.0.0} & \sol{\lkDeux.1} \\ \hline
-  \hl R3 & \sol{\textit{(ou routes vers réseaux 1, 2 et \lkUn.0)}} & & \\ \hline
-\end{tabularx}}
-\bareme{R2 : 0,5 pt par route (pas de route par défaut possible sur R2 : il a deux voisins). R1 et R3 : 0,5 pt chacun pour une
-route par défaut ou un jeu complet de routes détaillées.}
+\question{6}{2 pts}{Effacez temporairement la passerelle de PC0 et envoyez, en mode « Simulation », une trame de PC0 vers
+Server1 ; remettez la passerelle et recommencez. Décrivez les deux résultats. Quel est le rôle de la passerelle ? Pourquoi n'avez-vous pas eu à la
+saisir sur les hôtes du réseau 3 ?}
+\zone{3.2cm}{\textbf{Avant} : échec — Server1 n'est pas dans le réseau de PC0, qui ne sait pas à qui confier le paquet.
+\textbf{Après} : PC0 envoie le paquet au routeur (sa passerelle), qui l'achemine sur l'interface du réseau 2 ; Server1
+répond via sa propre passerelle : succès. La \textbf{passerelle} est l'adresse de l'interface du routeur située dans le réseau
+de l'hôte : c'est la « porte de sortie » vers les autres réseaux. Sur le réseau 3, elle est \textbf{fournie par le serveur
+DHCP} (champ \emph{Default Gateway}). \emph{0,5 avant/après, 1 rôle, 0,5 DHCP.}}
 
 \question{7}{4 pts}{Réalisez les tests suivants et faites viser chaque test réussi.}
 {\small\renewcommand{\arraystretch}{1.05}
@@ -270,7 +257,7 @@ route par défaut ou un jeu complet de routes détaillées.}
   \textbf{N°} & \textbf{Source} & \textbf{Destination} & \textbf{Commande / action} & \textbf{Visa prof.} \\ \hline
   \testrows
 \end{tabularx}}
-\bareme{0,8 pt par test visé. Les tests 3 et 5 traversent les trois routeurs. Premier ping inter-réseaux parfois en échec (ARP) : relancer.}
+\bareme{0,8 pt par test visé. Les tests 2 à 5 passent par le routeur. Premier ping inter-réseaux parfois en échec (ARP) : relancer.}
 
 \question{8}{1,5 pt}{Calculez l'adresse réseau, l'adresse de diffusion « broadcast » et le nombre d'hôtes adressables du
 réseau \resB{} (classe B).}
@@ -278,14 +265,15 @@ réseau \resB{} (classe B).}
 \emph{0,5 pt par élément.}}
 
 \question{9}{1 pt}{La passerelle par défaut du poste « PC0 » fait-elle partie du réseau 1 ? Justifiez votre réponse.}
-\zone{1.6cm}{\textbf{Oui} : \gwUn{} a la même adresse réseau que PC0 (\adrUn) ; c'est l'adresse de l'interface de R1
+\zone{1.6cm}{\textbf{Oui} : \gwUn{} a la même adresse réseau que PC0 (\adrUn) ; c'est l'adresse de l'interface de R0
 côté réseau 1. Une passerelle doit toujours appartenir au réseau de l'hôte, sinon celui-ci ne peut pas la joindre.}
 
-\question{10}{1,5 pt}{Quel type de câble relie deux routeurs ? Si l'on supprime sur R2 la route vers le réseau 3, que devient
-le test n°3 ? Expliquez.}
-\zone{2.2cm}{Câble \textbf{croisé} (équipements de même type). Sans cette route, R2 ne sait pas où transmettre les paquets
-destinés à \adrTrois{} (qui n'est pas directement connecté à R2) : il les rejette, le \textbf{ping échoue}
-(« Destination host unreachable »). \emph{0,5 câble, 1 explication.}}
+\question{10}{1,5 pt}{Si l'on oublie de renseigner la \emph{Default Gateway} dans le service DHCP de Server2, que devient
+le test n°3 ? Expliquez en décrivant le trajet de la requête et de la réponse.}
+\zone{2.4cm}{Le test \textbf{échoue}. La requête de PC0 part vers sa passerelle, le routeur la transmet dans le réseau 3 et
+elle atteint \dhTrois. Mais \dhTrois{} n'a \textbf{pas de passerelle} : la réponse est destinée à un autre réseau, il ne sait
+pas à qui l'envoyer, elle n'est jamais émise. Chaque hôte doit connaître sa passerelle pour que l'aller \emph{et} le retour
+fonctionnent. \emph{0,5 résultat, 1 explication.}}
 
 \vfill
 {\small\begin{tabularx}{\linewidth}{Xr}
