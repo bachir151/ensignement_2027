@@ -1,4 +1,4 @@
-% Évaluation pratique — Réseaux locaux (BTS CIEL 1re année) — sujets A et B
+% Évaluation — Interconnexion de réseaux avec trois routeurs (BTS CIEL 1re année) — sujets A et B
 % Compilation (4 PDF) :
 %   pdflatex -jobname=Eval_Reseau_SujetA   "\def\variante{A}\def\modecorrige{0}\input{Eval_TP_Reseau_LAN.tex}"
 %   pdflatex -jobname=Eval_Reseau_SujetB   "\def\variante{B}\def\modecorrige{0}\input{Eval_TP_Reseau_LAN.tex}"
@@ -30,6 +30,8 @@
 \definecolor{cdcbg}{HTML}{F4F1EA}
 \definecolor{qbar}{HTML}{4A6B5D}
 \definecolor{qbg}{HTML}{EDF1EF}
+\definecolor{aidebar}{HTML}{3A6EA5}
+\definecolor{aidebg}{HTML}{EEF3F9}
 \definecolor{corr}{HTML}{1F5FA8}
 \definecolor{corrbg}{HTML}{E8F0FA}
 \definecolor{grisfoot}{HTML}{828282}
@@ -38,19 +40,19 @@
 \newcommand{\pts}[1]{\hfill\mbox{\textbf{(#1)}}}
 \newcommand{\sol}[1]{\ifcorrige\textcolor{corr}{#1}\fi}
 \newcommand{\bareme}[1]{\ifcorrige\par{\footnotesize\color{corr}#1\par}\fi}
-\newcommand{\hl}{\ifcorrige\rule[-1.6mm]{0pt}{5.4mm}\else\rule[-2.2mm]{0pt}{6.6mm}\fi}
+\newcommand{\hl}{\ifcorrige\rule[-1.5mm]{0pt}{5mm}\else\rule[-2.8mm]{0pt}{8mm}\fi}
 \newcolumntype{C}{>{\centering\arraybackslash}X}
 \newcolumntype{L}{>{\raggedright\arraybackslash}X}
 
-\titleformat{\section}{\large\bfseries}{}{0pt}{}
-\titlespacing*{\section}{0pt}{6pt}{3pt}
+\titleformat{\section}{\large\bfseries}{\thesection}{0.8em}{}
+\titlespacing*{\section}{0pt}{7pt}{3pt}
 
 \tcbset{qstyle/.style={enhanced,boxrule=0pt,leftrule=2.5pt,arc=0pt,outer arc=0pt,
-  left=5pt,right=5pt,top=2pt,bottom=2pt,before skip=4pt,after skip=3pt}}
+  left=5pt,right=5pt,top=2pt,bottom=2pt,before skip=3pt,after skip=3pt}}
 \newtcolorbox{cdc}{qstyle,colback=cdcbg,colframe=cdcbar}
 \newtcolorbox{quest}{qstyle,colback=qbg,colframe=qbar}
+\newtcolorbox{aide}{qstyle,colback=aidebg,colframe=aidebar}
 
-% Zone de réponse : vierge dans le sujet, remplie dans le corrigé
 \newcommand{\zone}[2]{%
   \ifcorrige
     \begin{tcolorbox}[colback=corrbg,colframe=corr,boxrule=0.5pt,arc=1pt,left=4pt,right=4pt,top=1pt,bottom=1pt,
@@ -59,72 +61,33 @@
     \begin{tcolorbox}[colback=white,colframe=black!45,boxrule=0.4pt,arc=1pt,height=#1,
       before skip=2pt,after skip=2pt]\end{tcolorbox}%
   \fi}
-
-\newcommand{\question}[3]{\begin{quest}\textbf{#1.} #3\pts{#2}\end{quest}}
+\newcommand{\question}[3]{\begin{quest}\textbf{Question #1.} #3\pts{#2}\end{quest}}
 
 %==========================================================================
 % Données propres à chaque variante
 %==========================================================================
 \if\variante A
-  \def\entreprise{Le cabinet d'architectes \textbf{ArchiNova}}
-  \def\Rnom{R-ArchiNova}
-  \def\resUn{Bureau d'études}\def\pUn{BE}\def\netUn{192.168.40}
-  \def\resDeux{Accueil}\def\pDeux{ACC}\def\netDeux{172.16}
+  \def\Entreprise{ArchiNova}\def\activite{Le cabinet d'architectes}
+  \def\sUn{Paris}\def\lanUn{Bureau d'études}\def\pUn{BE}\def\netUn{192.168.40}\def\rUn{R-Paris}
+  \def\sDeux{Lyon}\def\lanDeux{Agence}\def\pDeux{AG}\def\netDeux{172.16}\def\rDeux{R-Lyon}
+  \def\sC{Siège}\def\rC{R-Siege}
   \def\srvNom{SRV-Intranet}\def\netSrv{192.168.200}\def\srvH{10}
-  \def\ssid{ArchiNova-WiFi}
-  \def\AIrows{%
-    \hl\ip{192.168.40.25} & \sol{C} & \sol{255.255.255.0} & \sol{192.168.40.0} & \sol{192.168.40.255} & \sol{254} \\ \hline
-    \hl\ip{172.16.5.10}   & \sol{B} & \sol{255.255.0.0}   & \sol{172.16.0.0}   & \sol{172.16.255.255} & \sol{65\,534} \\ \hline
-    \hl\ip{10.3.2.1}      & \sol{A} & \sol{255.0.0.0}     & \sol{10.0.0.0}     & \sol{10.255.255.255} & \sol{16\,777\,214} \\ \hline}
-  \def\apipa{169.254.12.7}
-  \def\Cnet{192.168.60}
-  \def\Crows{%
-    PC-A & \ip{192.168.60.10} & \ip{255.255.255.0} & \ip{192.168.60.254} & — \\
-    PC-B & \ip{192.168.60.20} & \ip{255.255.255.0} & \ip{192.168.60.1}   & — \\
-    PC-C & \ip{192.168.61.30} & \ip{255.255.255.0} & \ip{192.168.60.254} & — \\
-    PC-D & \ip{192.168.60.10} & \ip{255.255.255.0} & \ip{192.168.60.254} & — \\
-    SRV-C & \ip{10.0.0.5}     & \ip{255.0.0.0}     & \ip{10.0.0.254}     & — \\
-    R1 — G0/0 & \ip{192.168.60.254} & \ip{255.255.255.0} & — & On \\
-    R1 — G0/1 & \ip{10.0.0.254}     & \ip{255.0.0.0}     & — & Off \\}
-  \def\Csol{%
-    \hl 1 & \sol{PC-B} & \sol{Passerelle .60.1 : pas l'adresse du routeur.} & \sol{Joint son réseau, mais aucun autre (serveur).} & \sol{Passerelle 192.168.60.254.} \\ \hline
-    \hl 2 & \sol{PC-C} & \sol{IP hors du réseau 192.168.60.0/24.} & \sol{Ne joint ni les postes ni le routeur.} & \sol{Ex. 192.168.60.30.} \\ \hline
-    \hl 3 & \sol{PC-D} & \sol{Même IP que PC-A (doublon).} & \sol{Conflit d'adresse : PC-A et PC-D perturbés.} & \sol{Adresse unique, ex. .60.40.} \\ \hline
-    \hl 4 & \sol{R1 G0/1} & \sol{Interface désactivée (Off).} & \sol{Réseau du serveur injoignable pour tous.} & \sol{Port Status : On.} \\ \hline}
-  \def\Cbareme{PC-A et SRV-C sont correctement configurés ; accepter PC-A cité à la place de PC-D pour le doublon.}
+  \def\lkUn{192.168.101}\def\lkDeux{192.168.102}
+  \def\qIP{10.3.2.1}
 \else
-  \def\entreprise{La clinique vétérinaire \textbf{VetoPlus}}
-  \def\Rnom{R-VetoPlus}
-  \def\resUn{Soins}\def\pUn{SOI}\def\netUn{192.168.70}
-  \def\resDeux{Secrétariat}\def\pDeux{SEC}\def\netDeux{172.20}
+  \def\Entreprise{VetoPlus}\def\activite{La clinique vétérinaire}
+  \def\sUn{Clinique}\def\lanUn{Soins}\def\pUn{SOI}\def\netUn{192.168.70}\def\rUn{R-Clinique}
+  \def\sDeux{Annexe}\def\lanDeux{Secrétariat}\def\pDeux{SEC}\def\netDeux{172.20}\def\rDeux{R-Annexe}
+  \def\sC{Direction}\def\rC{R-Central}
   \def\srvNom{SRV-Dossiers}\def\netSrv{192.168.250}\def\srvH{20}
-  \def\ssid{VetoPlus-WiFi}
-  \def\AIrows{%
-    \hl\ip{192.168.15.130} & \sol{C} & \sol{255.255.255.0} & \sol{192.168.15.0} & \sol{192.168.15.255} & \sol{254} \\ \hline
-    \hl\ip{172.31.200.7}   & \sol{B} & \sol{255.255.0.0}   & \sol{172.31.0.0}   & \sol{172.31.255.255} & \sol{65\,534} \\ \hline
-    \hl\ip{10.45.6.9}      & \sol{A} & \sol{255.0.0.0}     & \sol{10.0.0.0}     & \sol{10.255.255.255} & \sol{16\,777\,214} \\ \hline}
-  \def\apipa{169.254.88.3}
-  \def\Cnet{192.168.80}
-  \def\Crows{%
-    PC-A & \ip{192.168.8.11}   & \ip{255.255.255.0} & \ip{192.168.80.254} & — \\
-    PC-B & \ip{192.168.80.12}  & \ip{255.255.255.0} & \ip{192.168.80.254} & — \\
-    PC-C & \ip{192.168.80.13}  & \ip{255.255.255.0} & \ip{192.168.80.100} & — \\
-    PC-D & \ip{192.168.80.12}  & \ip{255.255.255.0} & \ip{192.168.80.254} & — \\
-    SRV-C & \ip{10.0.0.8}      & \ip{255.0.0.0}     & \ip{10.0.0.254}     & — \\
-    R1 — G0/0 & \ip{192.168.80.254} & \ip{255.255.255.0} & — & Off \\
-    R1 — G0/1 & \ip{10.0.0.254}     & \ip{255.0.0.0}     & — & On \\}
-  \def\Csol{%
-    \hl 1 & \sol{PC-A} & \sol{IP hors du réseau 192.168.80.0/24.} & \sol{Ne joint ni les postes ni le routeur.} & \sol{Ex. 192.168.80.11.} \\ \hline
-    \hl 2 & \sol{PC-C} & \sol{Passerelle .80.100 : pas l'adresse du routeur.} & \sol{Joint son réseau, mais aucun autre (serveur).} & \sol{Passerelle 192.168.80.254.} \\ \hline
-    \hl 3 & \sol{PC-D} & \sol{Même IP que PC-B (doublon).} & \sol{Conflit d'adresse : PC-B et PC-D perturbés.} & \sol{Adresse unique, ex. .80.14.} \\ \hline
-    \hl 4 & \sol{R1 G0/0} & \sol{Interface côté LAN désactivée (Off).} & \sol{Aucun poste ne joint le routeur ni le serveur.} & \sol{Port Status : On.} \\ \hline}
-  \def\Cbareme{PC-B et SRV-C sont correctement configurés ; accepter PC-B cité à la place de PC-D pour le doublon.}
+  \def\lkUn{192.168.151}\def\lkDeux{192.168.152}
+  \def\qIP{10.45.6.9}
 \fi
 
 \pagestyle{fancy}
 \fancyhf{}
 \renewcommand{\headrulewidth}{0pt}
-\fancyfoot[L]{\footnotesize\itshape\color{grisfoot}Évaluation — Réseaux locaux — Sujet \variante\ifcorrige\ — CORRIGÉ\fi}
+\fancyfoot[L]{\footnotesize\itshape\color{grisfoot}Évaluation — Interconnexion de réseaux — Sujet \variante\ifcorrige\ — CORRIGÉ\fi}
 \fancyfoot[R]{\footnotesize\color{grisfoot}\thepage/3}
 
 \setlist{itemsep=0pt,topsep=2pt,parsep=0pt}
@@ -134,193 +97,208 @@
 \begin{document}
 
 \begin{center}
-  {\Large\bfseries Évaluation pratique — Réseaux locaux \quad
-   \fcolorbox{black}{white}{\ SUJET \variante\ }\par}
+  {\Large\bfseries Évaluation — Interconnexion de réseaux \quad \fcolorbox{black}{white}{\ SUJET \variante\ }\par}
   \vspace{1pt}
-  {\bfseries Adressage IP, commutation et routage — BTS CIEL 1re année — durée : 2 heures\par}
+  {\bfseries Travail en autonomie (durée : 2 heures) — BTS CIEL 1re année — Réseaux\par}
   \ifcorrige\vspace{2pt}{\bfseries\color{corr}CORRIGÉ ET BARÈME — document enseignant}\par\fi
 \end{center}
-\vspace{-2pt}
+\vspace{-3pt}
 {\renewcommand{\arraystretch}{1.35}
 \begin{tabularx}{\linewidth}{|X|X|p{2.2cm}|p{2.6cm}|}
   \hline
   \textbf{Nom :} & \textbf{Prénom :} & \textbf{Poste n°} & \textbf{Note :} \hfill /20 \\ \hline
 \end{tabularx}}
 
-\textbf{Consignes :} travail \textbf{individuel}, documents et Internet \textbf{non autorisés}. Ce sujet est le
-\textbf{document-réponse}. Fichier Packet Tracer : \ip{Nom\_Prenom\_EvalLAN\_\variante.pkt}, à enregistrer
-régulièrement dans le dossier de rendu. Les « visas » sont apposés par le professeur, que vous appelez à chaque test réussi.
-Durées conseillées : A 30 min — B 1 h 10 — C 20 min.
+%==========================================================================
+\section{Contexte}
+\activite{} \textbf{\Entreprise} possède un \textbf{\sC} et deux sites (\textbf{\sUn} et \textbf{\sDeux}). Elle vous confie
+la conception complète de son réseau sous Cisco Packet Tracer. Comme dans le TP de synthèse, \textbf{aucune procédure pas
+à pas n'est fournie} : vous mobilisez en autonomie les TP2.1 (adressage IP), TP2.2 (concentrateur et commutateur) et TP2.3
+(routeur, passerelle), et vous faites les bons choix techniques. Nouveauté : les sites sont reliés par \textbf{trois routeurs}.
+
+\textbf{Compétences évaluées :} concevoir un plan d'adressage cohérent ; choisir et câbler les équipements ;
+configurer postes, passerelles et interfaces de routeurs ; établir le \textbf{routage statique} entre trois routeurs ;
+valider la connectivité et justifier ses choix.
 
 %==========================================================================
-\section{Partie A — Questions de cours et calculs \hfill /6}
+\section{Cahier des charges}
+\begin{cdc}\textbf{Site \sUn{} — \lanUn} : réseau filaire, \textbf{3 postes} (PC-\pUn1 à PC-\pUn3) à adressage statique,
+classe C, réseau \ip{\netUn.0/24}, routeur \ip{\rUn}.\end{cdc}
+\begin{cdc}\textbf{Site \sDeux{} — \lanDeux} : réseau filaire, \textbf{2 postes} (PC-\pDeux1, PC-\pDeux2) \textbf{+ 1 imprimante
+réseau} (IMP-\pDeux) à adressage statique, classe B, réseau \ip{\netDeux.0.0/16}, routeur \ip{\rDeux}.\end{cdc}
+\begin{cdc}\textbf{\sC{} — Serveur} : serveur \ip{\srvNom} d'adresse \ip{\netSrv.\srvH/24}, relié \textbf{directement}
+au routeur central \ip{\rC}.\end{cdc}
+\begin{cdc}\textbf{Liaisons inter-routeurs} : \rUn{} $\leftrightarrow$ \rC{} sur \ip{\lkUn.0/24} ;
+\rDeux{} $\leftrightarrow$ \rC{} sur \ip{\lkDeux.0/24}.\end{cdc}
 
-\question{A1}{2 pts}{Complétez le tableau en considérant le \textbf{masque par défaut} de la classe de chaque adresse.}
-{\small\renewcommand{\arraystretch}{1.15}
-\begin{tabularx}{\linewidth}{|l|c|C|C|C|c|}
-  \hline
-  \textbf{Adresse IP} & \textbf{Classe} & \textbf{Masque par défaut} & \textbf{Adresse réseau} &
-  \textbf{Adresse de diffusion} & \textbf{Nb d'hôtes} \\ \hline
-  \AIrows
-\end{tabularx}}
-\bareme{0,5 pt par ligne juste + 0,5 pt si les trois nombres d'hôtes sont justes ($2^{n}-2$, $n$ = nombre de bits d'hôte).}
+\begin{center}
+\begin{tikzpicture}[font=\footnotesize,
+  lan/.style={draw=cdcbar,fill=cdcbg,rounded corners=3pt,align=center,inner sep=3pt,minimum height=11mm},
+  rt/.style={draw=qbar,fill=qbg,circle,inner sep=1pt,minimum size=11mm,align=center,font=\scriptsize\bfseries},
+  every path/.style={thick}]
+  \node[rt] (RC) {\rC};
+  \node[rt,left=24mm of RC] (R1) {\rUn};
+  \node[rt,right=24mm of RC] (R2) {\rDeux};
+  \node[lan,left=7mm of R1] (L1) {\lanUn\\\netUn.0/24\\3 postes};
+  \node[lan,right=7mm of R2] (L2) {\lanDeux\\\netDeux.0.0/16\\2 postes + imprimante};
+  \node[lan,below=4mm of RC] (S) {\srvNom{} — \netSrv.\srvH/24};
+  \draw (L1) -- (R1); \draw (L2) -- (R2); \draw (RC) -- (S);
+  \draw (R1) -- node[above,font=\scriptsize]{\lkUn.0/24} (RC);
+  \draw (RC) -- node[above,font=\scriptsize]{\lkDeux.0/24} (R2);
+\end{tikzpicture}\\[-1pt]
+{\footnotesize\itshape Schéma de principe (les commutateurs et les postes ne sont pas représentés).}
+\end{center}
 
-\question{A2}{1 pt}{Indiquez le type de câble (\textbf{droit} ou \textbf{croisé}) pour chaque liaison.}
-{\small\renewcommand{\arraystretch}{1.15}
-\begin{tabularx}{\linewidth}{|X|c||X|c|}
-  \hline
-  \hl PC $\leftrightarrow$ commutateur & \makebox[1.6cm]{\sol{droit}} & Commutateur $\leftrightarrow$ routeur & \makebox[1.6cm]{\sol{droit}} \\ \hline
-  \hl PC $\leftrightarrow$ PC (réseau P2P) & \sol{croisé} & Concentrateur $\leftrightarrow$ concentrateur & \sol{croisé} \\ \hline
-\end{tabularx}}
-\bareme{0,25 pt par case. Équipements de types différents : câble droit ; de même type : câble croisé.}
+\textbf{Contraintes générales :}
+\begin{itemize}
+  \item Trois routeurs \textbf{Cisco 2911} ; chaque réseau constitue un \textbf{sous-réseau distinct}.
+  \item Passerelle de chaque réseau local = \textbf{dernière adresse utilisable}. Sur chaque liaison inter-routeurs,
+        \rC{} prend l'adresse \textbf{.1} et le routeur de site l'adresse \textbf{.2}.
+  \item Routage \textbf{statique uniquement} (routes statiques et/ou route par défaut ; pas de RIP).
+  \item Chaque hôte doit pouvoir « \texttt{ping} » \textbf{n'importe quel autre hôte} et afficher la page web du serveur.
+  \item Choix concentrateur/commutateur \textbf{justifié} ; équipements \textbf{nommés clairement} (ex. \ip{PC-\pUn1}, \ip{SW-\pUn}).
+\end{itemize}
 
-\question{A3}{1 pt}{Comment un \textbf{concentrateur (hub)} et un \textbf{commutateur (switch)} traitent-ils une trame
-reçue ? Lequel limite les collisions, et pourquoi ?}
-\zone{2.9cm}{Le \textbf{hub} (couche 1) répète la trame sur \textbf{tous ses autres ports} : un seul domaine de collision
-partagé. Le \textbf{switch} (couche 2) lit l'adresse MAC de destination et, grâce à sa \textbf{table MAC}, ne l'envoie
-\textbf{que sur le port du destinataire} : un domaine de collision par port, c'est lui qui limite les collisions.
-\emph{0,5 pt hub, 0,5 pt switch.}}
-
-\question{A4}{1 pt}{Qu'est-ce que la \textbf{passerelle par défaut} d'un poste ? Quelle condition son adresse doit-elle respecter ?}
-\zone{2.4cm}{Adresse IP de l'interface du \textbf{routeur} à laquelle le poste envoie les paquets destinés à un
-\textbf{autre réseau}. Elle doit \textbf{appartenir au même réseau} que le poste. \emph{0,5 + 0,5 pt.}}
-
-\question{A5}{0,5 pt}{Un portable configuré en DHCP affiche \ip{\apipa} / \ip{255.255.0.0}. Que s'est-il passé ?}
-\zone{1.5cm}{Aucun \textbf{serveur DHCP} n'a répondu : le poste s'est attribué une adresse \textbf{APIPA} (169.254.0.0/16).}
-
-\question{A6}{0,5 pt}{Quel protocole utilise \texttt{ping} ? Nommez les deux messages échangés et la couche OSI des adresses IP.}
-\zone{1.5cm}{\textbf{ICMP} ; \textbf{Echo Request} / \textbf{Echo Reply} ; adresses IP en \textbf{couche 3 (Réseau)}.}
+\begin{aide}\textbf{Aide Packet Tracer — route statique.} Routeur $\to$ onglet \textbf{Config} $\to$ \textbf{ROUTING / Static} :
+\emph{Network} = adresse du réseau à atteindre, \emph{Mask} = son masque, \emph{Next Hop} = adresse IP de l'interface du
+\textbf{routeur voisin} sur la liaison, puis \textbf{Add}. Une \textbf{route par défaut} s'écrit \emph{Network}
+\texttt{0.0.0.0}, \emph{Mask} \texttt{0.0.0.0}. Un routeur connaît d'office ses réseaux directement connectés.\end{aide}
 
 %==========================================================================
 \newpage
-\section{Partie B — Réalisation sous Packet Tracer \hfill /10}
+\section{Travail demandé}
+\begin{enumerate}[leftmargin=16pt]
+  \item \textbf{Concevoir le plan d'adressage} (§4) et les \textbf{tables de routage statique} (§5) \emph{avant} de construire.
+  \item \textbf{Construire la topologie} sous Packet Tracer conformément au cahier des charges.
+  \item \textbf{Configurer} postes, imprimante, serveur (IP, masque, passerelle), interfaces des routeurs et routes statiques.
+  \item \textbf{Tester la connectivité} (§6) et faire viser chaque test réussi ; \textbf{répondre aux questions} (§7).
+\end{enumerate}
 
-\begin{cdc}
-\entreprise{} vous confie son réseau : \textbf{trois réseaux} reliés par un \textbf{routeur unique Cisco 2911}
-nommé \ip{\Rnom} (interfaces G0/0, G0/1, G0/2).
-\begin{itemize}[leftmargin=12pt]
-  \item \textbf{Réseau \resUn} : \textbf{4 postes} PC-\pUn1 à PC-\pUn4, commutateur \ip{SW-\pUn}, adressage statique,
-        réseau \ip{\netUn.0/24}.
-  \item \textbf{Réseau \resDeux} : \textbf{2 postes} PC-\pDeux1, PC-\pDeux2 et \textbf{1 imprimante} IMP-\pDeux,
-        commutateur \ip{SW-\pDeux}, adressage statique, réseau de classe B \ip{\netDeux.0.0/16}.
-  \item \textbf{Réseau Serveur} : serveur \ip{\srvNom} d'adresse \ip{\netSrv.\srvH/24}, relié \textbf{directement} au routeur.
-  \item La passerelle de chaque réseau est sa \textbf{dernière adresse utilisable}. Tous les équipements communiquent
-        entre eux et accèdent à la page web du serveur. Nommage imposé (« Display Name »).
-\end{itemize}
-\end{cdc}
-
-\question{B1}{2 pts}{Complétez le plan d'adressage \textbf{avant} la réalisation.}
-{\footnotesize\setlength{\tabcolsep}{3pt}\renewcommand{\arraystretch}{1.15}
-\begin{tabularx}{\linewidth}{|l|C|C|C|C|C|C|}
+\section{Plan d'adressage à compléter \hfill /3}
+{\footnotesize\setlength{\tabcolsep}{3pt}\renewcommand{\arraystretch}{1.12}
+\begin{tabularx}{\linewidth}{|l|C|C|C|C|C|>{\centering\arraybackslash}p{3.1cm}|}
   \hline
-  \textbf{Réseau} & \textbf{Adresse réseau} & \textbf{Masque} & \textbf{1re @ utilisable} &
-  \textbf{Dernière @ utilisable} & \textbf{Diffusion} & \textbf{Passerelle} \\ \hline
-  \hl \resUn & \sol{\netUn.0} & \sol{255.255.255.0} & \sol{\netUn.1} & \sol{\netUn.254} & \sol{\netUn.255} & \sol{\netUn.254} \\ \hline
-  \hl \resDeux & \sol{\netDeux.0.0} & \sol{255.255.0.0} & \sol{\netDeux.0.1} & \sol{\netDeux.255.254} & \sol{\netDeux.255.255} & \sol{\netDeux.255.254} \\ \hline
-  \hl Serveur & \sol{\netSrv.0} & \sol{255.255.255.0} & \sol{\netSrv.1} & \sol{\netSrv.254} & \sol{\netSrv.255} & \sol{\netSrv.254} \\ \hline
+  \textbf{Réseau / liaison} & \textbf{Adresse réseau} & \textbf{Masque (CIDR)} & \textbf{1re @ utilisable} &
+  \textbf{Dernière @ utilisable} & \textbf{Diffusion} & \textbf{Passerelle / interfaces routeurs} \\ \hline
+  \hl \lanUn & \sol{\netUn.0} & \sol{/24} & \sol{\netUn.1} & \sol{\netUn.254} & \sol{\netUn.255} & \sol{\netUn.254} \\ \hline
+  \hl \lanDeux & \sol{\netDeux.0.0} & \sol{/16} & \sol{\netDeux.0.1} & \sol{\netDeux.255.254} & \sol{\netDeux.255.255} & \sol{\netDeux.255.254} \\ \hline
+  \hl Serveur & \sol{\netSrv.0} & \sol{/24} & \sol{\netSrv.1} & \sol{\netSrv.254} & \sol{\netSrv.255} & \sol{\netSrv.254} \\ \hline
+  \hl \rUn{}–\rC & \sol{\lkUn.0} & \sol{/24} & \sol{\lkUn.1} & \sol{\lkUn.254} & \sol{\lkUn.255} & \sol{central .1 / site .2} \\ \hline
+  \hl \rDeux{}–\rC & \sol{\lkDeux.0} & \sol{/24} & \sol{\lkDeux.1} & \sol{\lkDeux.254} & \sol{\lkDeux.255} & \sol{central .1 / site .2} \\ \hline
 \end{tabularx}}
-\bareme{0,5 pt par ligne juste + 0,5 pt si la convention de passerelle est respectée partout.}
+\bareme{0,5 pt par ligne juste (2,5 pts) + 0,5 pt si les conventions (passerelle = dernière adresse, .1/.2 sur les liaisons) sont respectées.}
 
-\question{B2}{2 pts}{Construisez la topologie (équipements, câblage, nommage) et relevez l'adressage configuré.}
-{\footnotesize\setlength{\tabcolsep}{3pt}\renewcommand{\arraystretch}{1.1}
-\begin{tabularx}{\linewidth}{|l|C|C|C||l|C|C|}
+\section{Tables de routage statique à compléter \hfill /2}
+Indiquez les routes à ajouter sur chaque routeur (les réseaux directement connectés ne sont pas à saisir ; une ligne
+peut rester vide).
+
+{\footnotesize\renewcommand{\arraystretch}{1.12}
+\begin{tabularx}{\linewidth}{|l|C|C|C|}
   \hline
-  \textbf{Hôte} & \textbf{Adresse IP} & \textbf{Masque} & \textbf{Passerelle} & \textbf{Interface} & \textbf{Adresse IP} & \textbf{Masque} \\ \hline
-  \hl PC-\pUn1 & \sol{\netUn.1} & \sol{255.255.255.0} & \sol{\netUn.254} & \Rnom{} G0/0 & \sol{\netUn.254} & \sol{255.255.255.0} \\ \hline
-  \hl PC-\pDeux1 & \sol{\netDeux.0.1} & \sol{255.255.0.0} & \sol{\netDeux.255.254} & \Rnom{} G0/1 & \sol{\netDeux.255.254} & \sol{255.255.0.0} \\ \hline
-  \hl IMP-\pDeux & \sol{\netDeux.0.10} & \sol{255.255.0.0} & \sol{\netDeux.255.254} & \Rnom{} G0/2 & \sol{\netSrv.254} & \sol{255.255.255.0} \\ \hline
-  \hl \srvNom & \ip{\netSrv.\srvH} & \sol{255.255.255.0} & \sol{\netSrv.254} & \multicolumn{3}{c|}{\cellcolor{black!8}} \\ \hline
+  \textbf{Routeur} & \textbf{Réseau de destination (Network)} & \textbf{Masque (Mask)} & \textbf{Routeur suivant (Next Hop)} \\ \hline
+  \hl \rUn & \sol{0.0.0.0} & \sol{0.0.0.0} & \sol{\lkUn.1} \\ \hline
+  \hl \rUn & \sol{\textit{(ou routes détaillées vers \netDeux.0.0/16 et \netSrv.0/24)}} & & \\ \hline
+  \hl \rDeux & \sol{0.0.0.0} & \sol{0.0.0.0} & \sol{\lkDeux.1} \\ \hline
+  \hl \rDeux & \sol{\textit{(ou routes détaillées vers \netUn.0/24 et \netSrv.0/24)}} & & \\ \hline
+  \hl \rC & \sol{\netUn.0} & \sol{255.255.255.0} & \sol{\lkUn.2} \\ \hline
+  \hl \rC & \sol{\netDeux.0.0} & \sol{255.255.0.0} & \sol{\lkDeux.2} \\ \hline
 \end{tabularx}}
-\bareme{Adresses d'hôtes libres (uniques, dans le bon réseau) ; affectation G0/x libre. Sur le .pkt : équipements 0,5 ;
-câblage 1 (câbles droits vers les switchs et switch–routeur, \textbf{croisé} serveur–routeur, liens verts) ; nommage 0,5.}
+\bareme{\rC{} : 0,5 pt par route juste. Routeurs de site : 0,5 pt chacun pour une route par défaut \emph{ou} un jeu complet
+de routes détaillées. Pas de route par défaut sur \rC{} : il doit connaître précisément les deux réseaux de site.}
 
-\question{B3}{3 pts}{Configurez tous les équipements : IP, masques, passerelles des hôtes ; interfaces du routeur
-(« Port Status : On »).}
-\bareme{Sur le .pkt : interfaces routeur 1 pt ; IP/masques des hôtes 1 pt ; passerelles (imprimante et serveur compris)
-1 pt. $-0,25$ par erreur, sans descendre sous 0 par item.}
-
-\question{B4}{3 pts}{Réalisez les tests, notez la commande et le résultat, puis faites viser chaque test réussi.}
+\section{Tests de connectivité}
 {\small\renewcommand{\arraystretch}{1.1}
 \begin{tabularx}{\linewidth}{|c|l|l|C|c|c|}
   \hline
   \textbf{N°} & \textbf{Source} & \textbf{Destination} & \textbf{Commande / action} & \textbf{Résultat} & \textbf{Visa prof.} \\ \hline
-  \hl 1 & PC-\pUn1 & PC-\pUn4 & \sol{ping \netUn.4} & \sol{réussi} & \hspace{1.4cm} \\ \hline
-  \hl 2 & PC-\pDeux1 & IMP-\pDeux & \sol{ping \netDeux.0.10} & \sol{réussi} & \\ \hline
-  \hl 3 & PC-\pUn2 & PC-\pDeux2 & \sol{ping \netDeux.0.2} & \sol{réussi} & \\ \hline
-  \hl 4 & PC-\pDeux2 & \srvNom & \sol{ping \netSrv.\srvH} & \sol{réussi} & \\ \hline
-  \hl 5 & PC-\pUn3 & page web du serveur & \sol{navigateur : {\NoAutoSpacing http://\netSrv.\srvH}} & \sol{page affichée} & \\ \hline
+  \hl 1 & PC-\pUn1 & PC-\pUn3 & \sol{ping (IP de PC-\pUn3)} & \sol{réussi} & \hspace{1.4cm} \\ \hline
+  \hl 2 & PC-\pDeux1 & IMP-\pDeux & \sol{ping (IP de IMP-\pDeux)} & \sol{réussi} & \\ \hline
+  \hl 3 & PC-\pUn1 & \srvNom & \sol{ping \netSrv.\srvH} & \sol{réussi} & \\ \hline
+  \hl 4 & PC-\pDeux2 & page web du serveur & \sol{navigateur : {\NoAutoSpacing http://\netSrv.\srvH}} & \sol{page affichée} & \\ \hline
+  \hl 5 & PC-\pUn2 & PC-\pDeux2 & \sol{ping (IP de PC-\pDeux2)} & \sol{réussi} & \\ \hline
 \end{tabularx}}
-\bareme{0,5 pt par test visé + 0,5 pt pour B5. Le premier ping inter-réseaux peut échouer (résolution ARP) ; les suivants doivent réussir.}
+\bareme{Les premiers pings inter-réseaux peuvent échouer (résolution ARP) : relancer. Le test 5 traverse les trois routeurs.}
 
-\question{B5}{incl. B4}{Test n°3 : par quels équipements passe le paquet ? Pourquoi PC-\pUn2 l'envoie-t-il au routeur ?}
-\zone{2.3cm}{PC-\pUn2 $\to$ SW-\pUn{} $\to$ \Rnom{} $\to$ SW-\pDeux{} $\to$ PC-\pDeux2. Grâce à son masque, PC-\pUn2 constate que
-la destination (\netDeux.0.0/16) n'est \textbf{pas dans son réseau} (\netUn.0/24) : il envoie le paquet à sa
-\textbf{passerelle par défaut}, qui le route.}
+\ifcorrige
+\begin{center}
+\begin{tikzpicture}[font=\scriptsize,
+  eq/.style={draw=corr,fill=corrbg,rounded corners=2pt,minimum height=5mm,inner sep=2pt,align=center},
+  every path/.style={draw=corr,thick}]
+  \node[eq] (RC) {\rC};
+  \node[eq,left=14mm of RC] (R1) {\rUn};
+  \node[eq,right=14mm of RC] (R2) {\rDeux};
+  \node[eq,left=10mm of R1] (S1) {SW-\pUn};
+  \node[eq,right=10mm of R2] (S2) {SW-\pDeux};
+  \node[eq,left=5mm of S1] (P1) {PC-\pUn1..3};
+  \node[eq,right=5mm of S2] (P2) {PC-\pDeux1, 2\\IMP-\pDeux};
+  \node[eq,below=4mm of RC] (SV) {\srvNom};
+  \draw (P1)--(S1); \draw (S1)--node[above]{droit}(R1);
+  \draw (R1)--node[above]{croisé}(RC); \draw (RC)--node[above]{croisé}(R2);
+  \draw (R2)--node[above]{droit}(S2); \draw (S2)--(P2);
+  \draw (RC)--node[right]{croisé}(SV);
+\end{tikzpicture}\\
+{\footnotesize\color{corr}Topologie attendue. Barème sur le .pkt — topologie /3 : équipements 1, câblage (liens verts) 1,
+nommage 1. Configuration /4 : IP-masques des hôtes 1, passerelles 1, interfaces routeurs activées 1, routes 1.
+Tests /4 : 0,8 par test visé.}
+\end{center}
+\fi
 
 %==========================================================================
 \newpage
-\section{Partie C — Diagnostic d'un réseau en panne \hfill /4}
+\section{Questions de réflexion \hfill /4}
 
-Un technicien constate qu'\textbf{aucun poste ne parvient à joindre le serveur SRV-C} et que certains postes
-communiquent mal entre eux. Les câbles sont du bon type.
+\question{1}{1 pt}{Avez-vous choisi des concentrateurs ou des commutateurs pour les deux sites ? Justifiez
+(rôle, domaine de collision, performances).}
+\zone{2.3cm}{\textbf{Commutateurs.} Un hub répète chaque trame sur tous ses ports (un seul domaine de collision,
+bande passante partagée). Le switch utilise sa \textbf{table MAC} pour n'envoyer la trame que sur le port du
+destinataire : un domaine de collision par port, moins de trafic inutile, meilleures performances (et confidentialité).}
 
-\begin{center}
-\begin{minipage}{0.37\linewidth}\centering
-\begin{tikzpicture}[font=\footnotesize,
-  eq/.style={draw,fill=qbg,rounded corners=2pt,minimum width=9mm,minimum height=5mm,inner sep=2pt},
-  every path/.style={thick}]
-  \node[eq] (SW) {SW-1};
-  \node[eq,right=9mm of SW] (R) {R1};
-  \node[eq,right=7mm of R] (SRV) {SRV-C};
-  \node[eq,above left=5mm and -3mm of SW] (A) {PC-A};
-  \node[eq,above right=5mm and -3mm of SW] (B) {PC-B};
-  \node[eq,below left=5mm and -3mm of SW] (C) {PC-C};
-  \node[eq,below right=5mm and -3mm of SW] (D) {PC-D};
-  \foreach \n in {A,B,C,D} \draw (\n) -- (SW);
-  \draw (SW) -- node[above,font=\tiny]{G0/0} (R);
-  \draw (R) -- node[above,font=\tiny]{G0/1} (SRV);
-\end{tikzpicture}
-\end{minipage}\hfill
-\begin{minipage}{0.61\linewidth}\centering
-{\small\renewcommand{\arraystretch}{1.05}\setlength{\tabcolsep}{4pt}
-\begin{tabular}{lllll}
-  \toprule
-  \textbf{Équipement} & \textbf{Adresse IP} & \textbf{Masque} & \textbf{Passerelle} & \textbf{Port} \\
-  \midrule
-  \Crows
-  \bottomrule
-\end{tabular}}
-\end{minipage}
-\end{center}
+\question{2}{1 pt}{Quel câble (droit ou croisé) avez-vous utilisé pour chaque liaison : poste–commutateur,
+commutateur–routeur, routeur–routeur, serveur–routeur ?}
+\zone{1.3cm}{Poste–commutateur : \textbf{droit} ; commutateur–routeur : \textbf{droit} ; routeur–routeur : \textbf{croisé} ;
+serveur–routeur : \textbf{croisé} (équipements de même type). \emph{0,25 pt par liaison.}}
 
-\question{C1}{4 pts}{Relevez les \textbf{quatre anomalies}. Pour chacune : conséquence et correction.}
-{\small\renewcommand{\arraystretch}{1.1}
-\ifcorrige\def\hc{}\else\def\hc{\rule[-10mm]{0pt}{14mm}}\fi
-\begin{tabularx}{\linewidth}{|c|>{\raggedright\arraybackslash}p{2cm}|L|L|L|}
-  \hline
-  \textbf{N°} & \textbf{Équipement} & \textbf{Anomalie} & \textbf{Conséquence} & \textbf{Correction} \\ \hline
-  \ifcorrige\Csol\else
-  \hc 1 & & & & \\ \hline
-  \hc 2 & & & & \\ \hline
-  \hc 3 & & & & \\ \hline
-  \hc 4 & & & & \\ \hline
-  \fi
-\end{tabularx}}
-\bareme{1 pt par anomalie (0,25 équipement, anomalie, conséquence, correction ; ordre indifférent). \Cbareme}
+\question{3}{1 pt}{Adresses et passerelles configurées, mais routes pas encore ajoutées : PC-\pUn1 ne joint pas \srvNom.
+Pourquoi ? Qu'apporte une route statique ?}
+\zone{2.3cm}{PC-\pUn1 envoie bien le paquet à sa passerelle \rUn, mais \rUn{} ne connaît que ses réseaux
+\textbf{directement connectés} (\netUn.0/24 et \lkUn.0/24) : il ignore le réseau \netSrv.0/24 et rejette le paquet
+(« Destination host unreachable »). Une \textbf{route statique} indique au routeur, pour un réseau de destination,
+l'adresse du \textbf{routeur suivant} (next hop) à qui transmettre le paquet.}
+
+\question{4}{0,5 pt}{Pour l'adresse \ip{\qIP} : classe, adresse réseau, adresse de diffusion et nombre d'hôtes adressables.}
+\zone{1.3cm}{Classe \textbf{A}, masque 255.0.0.0 ; réseau \textbf{10.0.0.0} ; diffusion \textbf{10.255.255.255} ;
+$2^{24}-2 =$ \textbf{16\,777\,214} hôtes.}
+
+\question{5}{0,5 pt}{On supprime sur \rC{} la route vers le réseau \lanUn. Le ping PC-\pUn1 $\to$ \srvNom{} échoue alors
+que la requête atteint bien le serveur. Expliquez.}
+\zone{1.8cm}{La requête passe (route par défaut de \rUn{} puis réseau connecté de \rC), le serveur répond, mais \rC{}
+ne sait plus où envoyer la réponse destinée à \netUn.0/24 : elle est perdue. Le routage doit être correct \textbf{dans
+les deux sens} (aller et retour).}
 
 %==========================================================================
-\section{Bonus — Extension sans fil \hfill +1}
+\section{Livrables}
+\begin{itemize}
+  \item Le fichier Packet Tracer \ip{Nom\_Prenom\_Eval\_\variante.pkt}, enregistré dans le dossier de rendu.
+  \item Ce document-réponse complété (plan d'adressage, tables de routage, tests visés, réponses aux questions).
+\end{itemize}
 
-\begin{cdc}Ajoutez au réseau \resUn{} un \textbf{AccessPoint-PT} relié à SW-\pUn{} (SSID \ip{\ssid}, \textbf{WPA2-PSK})
-et un portable \ip{Laptop-\pUn} équipé d'un module \texttt{WPC300N}, en adressage \textbf{statique}.
-Vérifiez qu'il joint \srvNom.\end{cdc}
-{\small\renewcommand{\arraystretch}{1.1}
-\begin{tabularx}{\linewidth}{|l|C|C|C|c|}
-  \hline
-  \textbf{Équipement} & \textbf{Adresse IP} & \textbf{Masque} & \textbf{Passerelle} & \textbf{Visa prof.} \\ \hline
-  \hl Laptop-\pUn & \sol{\netUn.50} & \sol{255.255.255.0} & \sol{\netUn.254} & \hspace{1.4cm} \\ \hline
-\end{tabularx}}
-\bareme{Le point d'accès fait office de pont : le portable est dans \netUn.0/24. Bonus si associé en WPA2-PSK et ping
-vers \netSrv.\srvH{} réussi. Note plafonnée à 20.}
+\section{Barème et déroulé conseillé}
+{\small\renewcommand{\arraystretch}{1.05}
+\begin{center}
+\begin{tabularx}{0.82\linewidth}{Lc}
+  \toprule
+  \textbf{Critère évalué} & \textbf{Points} \\ \midrule
+  Plan d'adressage cohérent et complet (§4) & /3 \\
+  Tables de routage statique (§5) & /2 \\
+  Topologie conforme au cahier des charges (équipements, câblage, nommage) & /3 \\
+  Configuration correcte (IP, masques, passerelles, interfaces, routes) & /4 \\
+  Connectivité validée : tests visés (§6) & /4 \\
+  Questions de réflexion (§7) & /4 \\ \midrule
+  \textbf{Total} & \textbf{/20} \\ \bottomrule
+\end{tabularx}
+\end{center}}
+\textbf{Déroulé conseillé (2 h) :} $\approx$ 20 min de conception (§4 et §5 au brouillon), $\approx$ 1 h de construction
+et de configuration, $\approx$ 25 min de tests, $\approx$ 15 min pour les questions de réflexion.\\
+\textbf{Ressources :} aucun document, pas d'Internet. Le professeur n'intervient qu'en cas de blocage matériel et pour viser les tests.
 
 \end{document}
