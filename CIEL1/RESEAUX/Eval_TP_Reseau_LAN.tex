@@ -103,11 +103,14 @@
   \def\hostsDeux{%
     \hrow{Server1}{172.16.0.1}{255.255.0.0}{172.16.255.254}{PC2}{172.16.0.2}{255.255.0.0}{172.16.255.254}
     \hrow{Laptop1}{172.16.0.3}{255.255.0.0}{172.16.255.254}{Printer1}{172.16.0.4}{255.255.0.0}{172.16.255.254}}
+  \def\hostsTrois{%
+    \hrow{Server2}{192.168.30.1}{255.255.255.0}{192.168.30.254}{Laptop2}{192.168.30.2}{255.255.255.0}{192.168.30.254}
+    \hrow{Laptop3}{192.168.30.3}{255.255.255.0}{192.168.30.254}{PC3}{192.168.30.4}{255.255.255.0}{192.168.30.254}}
   \def\testrows{%
     \hl 1 & PC0 & Printer0 & \sol{ping 192.168.10.5} & \\ \hline
     \hl 2 & PC1 & Server1 & \sol{ping 172.16.0.1} & \\ \hline
-    \hl 3 & PC0 & \dhTrois & \sol{ping (IP obtenue par PC3)} & \\ \hline
-    \hl 4 & Laptop1 & \dhUn & \sol{ping (IP obtenue par Laptop2)} & \\ \hline
+    \hl 3 & PC0 & \dhTrois & \sol{ping 192.168.30.4} & \\ \hline
+    \hl 4 & Laptop1 & \dhUn & \sol{ping 192.168.30.2} & \\ \hline
     \hl 5 & \dhUn & page web de Server0 & \sol{navigateur : {\NoAutoSpacing http://192.168.10.1}} & \\ \hline}
 \else
   \def\netUn{172.20}\def\clUn{B}\def\mUn{255.255.0.0}\def\gwUn{172.20.255.254}\def\cidrUn{/16}
@@ -130,11 +133,14 @@
     \hrow{Server1}{192.168.50.1}{255.255.255.0}{192.168.50.254}{PC2}{192.168.50.2}{255.255.255.0}{192.168.50.254}
     \hrow{Laptop0}{192.168.50.3}{255.255.255.0}{192.168.50.254}{Laptop1}{192.168.50.4}{255.255.255.0}{192.168.50.254}
     \hrow{Printer1}{192.168.50.5}{255.255.255.0}{192.168.50.254}{}{}{}{}}
+  \def\hostsTrois{%
+    \hrow{Server2}{192.168.60.1}{255.255.255.0}{192.168.60.254}{PC3}{192.168.60.2}{255.255.255.0}{192.168.60.254}
+    \hrow{PC4}{192.168.60.3}{255.255.255.0}{192.168.60.254}{Laptop2}{192.168.60.4}{255.255.255.0}{192.168.60.254}}
   \def\testrows{%
     \hl 1 & PC0 & Printer0 & \sol{ping 172.20.0.4} & \\ \hline
     \hl 2 & PC1 & Server1 & \sol{ping 192.168.50.1} & \\ \hline
-    \hl 3 & PC0 & \dhTrois & \sol{ping (IP obtenue par Laptop2)} & \\ \hline
-    \hl 4 & Laptop0 & \dhUn & \sol{ping (IP obtenue par PC3)} & \\ \hline
+    \hl 3 & PC0 & \dhTrois & \sol{ping 192.168.60.4} & \\ \hline
+    \hl 4 & Laptop0 & \dhUn & \sol{ping 192.168.60.2} & \\ \hline
     \hl 5 & \dhUn & page web de Server0 & \sol{navigateur : {\NoAutoSpacing http://172.20.0.1}} & \\ \hline}
 \fi
 
@@ -197,25 +203,12 @@ par un commutateur et ping intra-réseau fonctionnel sur le .pkt (0,5 pt). Adres
 
 %==========================================================================
 \newpage
-\cdcq{3}{le réseau 3 est un réseau \textbf{filaire} avec un adressage \textbf{dynamique} de classe C (réseau \ip{\adrTrois}).
-Le serveur \textbf{Server2}, en adresse statique, joue le rôle de \textbf{serveur DHCP}. L'ajout de concentrateur(s), de
-commutateur(s) et de ports est possible.}
-\begin{aide}\textbf{Aide — serveur DHCP.} Server2 $\to$ onglet \textbf{Services} $\to$ \textbf{DHCP} : Service \textbf{On},
-renseigner \emph{Default Gateway}, \emph{Start IP Address}, \emph{Subnet Mask}, puis \textbf{Save}. Sur les autres hôtes :
-Desktop $\to$ IP Configuration $\to$ \textbf{DHCP}.\end{aide}
-\question{3}{3 pts}{Construisez et configurez le réseau 3 (passerelle = dernière adresse utilisable). Complétez le tableau.}
-{\footnotesize\renewcommand{\arraystretch}{1.05}
-\begin{tabularx}{\linewidth}{|l|C||l|C|}
-  \hline
-  \textbf{Paramètre} & \textbf{Valeur} & \textbf{Paramètre} & \textbf{Valeur} \\ \hline
-  \hl Server2 : adresse IP / masque & \sol{\netTrois.1 / 255.255.255.0} & DHCP : \emph{Start IP Address} & \sol{\netTrois.100} \\ \hline
-  \hl Server2 : passerelle & \sol{\gwTrois} & DHCP : \emph{Default Gateway} & \sol{\gwTrois} \\ \hline
-  \hl IP obtenue par \dhUn & \sol{\netTrois.100 (ex.)} & IP obtenue par \dhDeux & \sol{\netTrois.101 (ex.)} \\ \hline
-  \hl IP obtenue par \dhTrois & \sol{\netTrois.102 (ex.)} & Masque obtenu & \sol{255.255.255.0} \\ \hline
-\end{tabularx}}
-\bareme{Server2 en statique 0,5 ; pool cohérent (début dans le réseau, hors adresse du serveur et de la passerelle) 1 ;
-\textbf{passerelle renseignée dans le pool} 0,5 (sinon les hôtes DHCP ne sortiront pas du réseau) ; trois hôtes en DHCP
-avec une adresse du réseau (pas d'APIPA 169.254.x.x) 1.}
+\cdcq{3}{le réseau 3 est un réseau \textbf{filaire} avec un adressage \textbf{statique} de \textbf{classe C}
+(réseau \ip{\adrTrois}). L'ajout de concentrateur(s), de commutateur(s) et de ports est possible.}
+\question{3}{2 pts}{Construisez puis configurez les hôtes du réseau 3 (passerelle = dernière adresse utilisable).
+Relevez votre adressage.}
+\begin{tabhotes}\hostsTrois\end{tabhotes}
+\bareme{Mêmes critères que Q1 et Q2.}
 
 \question{4}{1 pt}{Quel équipement avez-vous ajouté pour relier les hôtes de chaque réseau ? Justifiez ce choix. À ce stade,
 un hôte du réseau 1 peut-il joindre un hôte du réseau 2 ? Pourquoi ?}
@@ -239,17 +232,16 @@ passerelle du réseau. Toutes les solutions matérielles et logicielles sont pos
 \end{tabularx}}
 \bareme{0,5 pt par interface juste et activée sur le .pkt (1,5) + 0,5 pour le câble. L'affectation G0/x $\leftrightarrow$ réseau est libre.}
 
-%==========================================================================
-\newpage
-\question{6}{2 pts}{Effacez temporairement la passerelle de PC0 et envoyez, en mode « Simulation », une trame de PC0 vers
-Server1 ; remettez la passerelle et recommencez. Décrivez les deux résultats. Quel est le rôle de la passerelle ? Pourquoi n'avez-vous pas eu à la
-saisir sur les hôtes du réseau 3 ?}
-\zone{3.2cm}{\textbf{Avant} : échec — Server1 n'est pas dans le réseau de PC0, qui ne sait pas à qui confier le paquet.
-\textbf{Après} : PC0 envoie le paquet au routeur (sa passerelle), qui l'achemine sur l'interface du réseau 2 ; Server1
-répond via sa propre passerelle : succès. La \textbf{passerelle} est l'adresse de l'interface du routeur située dans le réseau
-de l'hôte : c'est la « porte de sortie » vers les autres réseaux. Sur le réseau 3, elle est \textbf{fournie par le serveur
-DHCP} (champ \emph{Default Gateway}). \emph{0,5 avant/après, 1 rôle, 0,5 DHCP.}}
+\question{6}{3 pts}{Effacez temporairement la passerelle de PC0 et envoyez, en mode « Simulation », une trame de PC0 vers
+Server1 ; remettez la passerelle et recommencez. Décrivez les deux résultats. Quel est le rôle de la passerelle ?
+Server1 a-t-il lui aussi besoin d'une passerelle pour que l'échange réussisse ? Justifiez.}
+\zone{3.6cm}{\textbf{Sans passerelle} : échec — Server1 n'est pas dans le réseau de PC0, qui ne sait pas à qui confier le
+paquet. \textbf{Avec passerelle} : PC0 envoie le paquet au routeur, qui l'achemine sur l'interface du réseau 2 : succès.
+La \textbf{passerelle} est l'adresse de l'interface du routeur située dans le réseau de l'hôte : la « porte de sortie » vers
+les autres réseaux. \textbf{Oui} : Server1 doit renvoyer une réponse vers un autre réseau (celui de PC0) ; sans passerelle il
+ne peut pas répondre. \emph{0,5 + 0,5 résultats, 1 rôle, 1 passerelle de Server1.}}
 
+\newpage
 \question{7}{4 pts}{Réalisez les tests suivants et faites viser chaque test réussi.}
 {\small\renewcommand{\arraystretch}{1.05}
 \begin{tabularx}{\linewidth}{|c|l|l|C|c|}
@@ -268,17 +260,17 @@ réseau \resB{} (classe B).}
 \zone{1.6cm}{\textbf{Oui} : \gwUn{} a la même adresse réseau que PC0 (\adrUn) ; c'est l'adresse de l'interface de R0
 côté réseau 1. Une passerelle doit toujours appartenir au réseau de l'hôte, sinon celui-ci ne peut pas la joindre.}
 
-\question{10}{1,5 pt}{Si l'on oublie de renseigner la \emph{Default Gateway} dans le service DHCP de Server2, que devient
-le test n°3 ? Expliquez en décrivant le trajet de la requête et de la réponse.}
+\question{10}{1,5 pt}{Si l'on efface la passerelle de \dhTrois{} (réseau 3), que devient le test n°3 ? Expliquez en
+décrivant le trajet de la requête et de la réponse.}
 \zone{2.4cm}{Le test \textbf{échoue}. La requête de PC0 part vers sa passerelle, le routeur la transmet dans le réseau 3 et
-elle atteint \dhTrois. Mais \dhTrois{} n'a \textbf{pas de passerelle} : la réponse est destinée à un autre réseau, il ne sait
-pas à qui l'envoyer, elle n'est jamais émise. Chaque hôte doit connaître sa passerelle pour que l'aller \emph{et} le retour
-fonctionnent. \emph{0,5 résultat, 1 explication.}}
+elle atteint \dhTrois. Mais \dhTrois{} n'a \textbf{plus de passerelle} : la réponse est destinée à un autre réseau, il ne sait
+pas à qui l'envoyer. Chaque hôte doit connaître sa passerelle pour que l'aller \emph{et} le retour fonctionnent.
+\emph{0,5 résultat, 1 explication.}}
 
 \vfill
 {\small\begin{tabularx}{\linewidth}{Xr}
 \toprule
-\textbf{Barème :} Q1 /2 — Q2 /2 — Q3 /3 — Q4 /1 — Q5 /2 — Q6 /2 — Q7 /4 — Q8 /1,5 — Q9 /1 — Q10 /1,5 & \textbf{Total /20} \\
+\textbf{Barème :} Q1 /2 — Q2 /2 — Q3 /2 — Q4 /1 — Q5 /2 — Q6 /3 — Q7 /4 — Q8 /1,5 — Q9 /1 — Q10 /1,5 & \textbf{Total /20} \\
 \bottomrule
 \end{tabularx}}
 
