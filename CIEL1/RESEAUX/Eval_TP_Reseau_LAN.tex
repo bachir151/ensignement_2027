@@ -106,11 +106,11 @@
     \hrow{Server2}{192.168.30.1}{255.255.255.0}{192.168.30.254}{Laptop2}{192.168.30.2}{255.255.255.0}{192.168.30.254}
     \hrow{Laptop3}{192.168.30.3}{255.255.255.0}{192.168.30.254}{PC3}{192.168.30.4}{255.255.255.0}{192.168.30.254}}
   \def\testrows{%
-    \hl 1 & PC0 & Printer0 & \sol{ping 192.168.10.5} & \\ \hline
-    \hl 2 & PC1 & Server1 & \sol{ping 172.16.0.1} & \\ \hline
-    \hl 3 & PC0 & \dhTrois & \sol{ping 192.168.30.4} & \\ \hline
-    \hl 4 & Laptop1 & \dhUn & \sol{ping 192.168.30.2} & \\ \hline
-    \hl 5 & \dhUn & page web de Server0 & \sol{navigateur : {\NoAutoSpacing http://192.168.10.1}} & \\ \hline}
+    \hl 1 & PC0 & Printer0 & \sol{ping 192.168.10.5} & \sol{réussi} \\ \hline
+    \hl 2 & PC1 & Server1 & \sol{ping 172.16.0.1} & \sol{réussi} \\ \hline
+    \hl 3 & PC0 & \dhTrois & \sol{ping 192.168.30.4} & \sol{réussi} \\ \hline
+    \hl 4 & Laptop1 & \dhUn & \sol{ping 192.168.30.2} & \sol{réussi} \\ \hline
+    \hl 5 & \dhUn & page web de Server0 & \sol{navigateur : {\NoAutoSpacing http://192.168.10.1}} & \sol{page affichée} \\ \hline}
 \else
   \def\netUn{172.20}\def\clUn{B}\def\mUn{255.255.0.0}\def\gwUn{172.20.255.254}\def\cidrUn{/16}
   \def\netDeux{192.168.50}\def\clDeux{C}\def\mDeux{255.255.255.0}\def\gwDeux{192.168.50.254}\def\cidrDeux{/24}
@@ -135,11 +135,11 @@
     \hrow{Server2}{192.168.60.1}{255.255.255.0}{192.168.60.254}{PC3}{192.168.60.2}{255.255.255.0}{192.168.60.254}
     \hrow{PC4}{192.168.60.3}{255.255.255.0}{192.168.60.254}{Laptop2}{192.168.60.4}{255.255.255.0}{192.168.60.254}}
   \def\testrows{%
-    \hl 1 & PC0 & Printer0 & \sol{ping 172.20.0.4} & \\ \hline
-    \hl 2 & PC1 & Server1 & \sol{ping 192.168.50.1} & \\ \hline
-    \hl 3 & PC0 & \dhTrois & \sol{ping 192.168.60.4} & \\ \hline
-    \hl 4 & Laptop0 & \dhUn & \sol{ping 192.168.60.2} & \\ \hline
-    \hl 5 & \dhUn & page web de Server0 & \sol{navigateur : {\NoAutoSpacing http://172.20.0.1}} & \\ \hline}
+    \hl 1 & PC0 & Printer0 & \sol{ping 172.20.0.4} & \sol{réussi} \\ \hline
+    \hl 2 & PC1 & Server1 & \sol{ping 192.168.50.1} & \sol{réussi} \\ \hline
+    \hl 3 & PC0 & \dhTrois & \sol{ping 192.168.60.4} & \sol{réussi} \\ \hline
+    \hl 4 & Laptop0 & \dhUn & \sol{ping 192.168.60.2} & \sol{réussi} \\ \hline
+    \hl 5 & \dhUn & page web de Server0 & \sol{navigateur : {\NoAutoSpacing http://172.20.0.1}} & \sol{page affichée} \\ \hline}
 \fi
 
 \pagestyle{fancy}
@@ -168,7 +168,7 @@
 \end{tabularx}}
 
 \textbf{Consignes :} travail individuel, sans document ni Internet ; ce sujet est le document-réponse. Enregistrez
-régulièrement votre travail sous \ip{Nom\_Prenom\_Eval\_\variante.pkt}. Appelez le professeur pour faire viser les tests.
+régulièrement votre travail sous \ip{Nom\_Prenom\_Eval\_\variante.pkt}.
 Rappel : en mode « Simulation », ne laissez coché que le protocole ICMP (« Edit Filters »).
 
 Vous allez construire \textbf{trois réseaux} (Figure 1), chacun selon son cahier des charges, puis les interconnecter.
@@ -239,14 +239,14 @@ La \textbf{passerelle} est l'adresse de l'interface du routeur située dans le r
 les autres réseaux. \textbf{Oui} : Server1 doit renvoyer une réponse vers un autre réseau (celui de PC0) ; sans passerelle il
 ne peut pas répondre. \emph{0,5 + 0,5 résultats, 1 rôle, 1 passerelle de Server1.}}
 
-\question{7}{6 pts}{Réalisez les tests suivants et faites viser chaque test réussi.}
+\question{7}{6 pts}{Réalisez les tests suivants et indiquez la commande utilisée et le résultat obtenu.}
 {\small\renewcommand{\arraystretch}{1.05}
-\begin{tabularx}{\linewidth}{|c|l|l|C|c|}
+\begin{tabularx}{\linewidth}{|c|l|l|C|>{\centering\arraybackslash}p{2.6cm}|}
   \hline
-  \textbf{N°} & \textbf{Source} & \textbf{Destination} & \textbf{Commande / action} & \textbf{Visa prof.} \\ \hline
+  \textbf{N°} & \textbf{Source} & \textbf{Destination} & \textbf{Commande / action} & \textbf{Résultat} \\ \hline
   \testrows
 \end{tabularx}}
-\bareme{1,2 pt par test visé. Les tests 2 à 5 passent par le routeur. Premier ping inter-réseaux parfois en échec (ARP) : relancer.}
+\bareme{1,2 pt par test réussi (vérifié sur le .pkt). Les tests 2 à 5 passent par le routeur. Premier ping inter-réseaux parfois en échec (ARP) : relancer.}
 
 \vfill
 {\small\begin{tabularx}{\linewidth}{Xr}
