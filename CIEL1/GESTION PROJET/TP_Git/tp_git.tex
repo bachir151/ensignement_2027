@@ -224,9 +224,17 @@ personnel} (\emph{personal access token}) : une longue clé secrète qui commenc
 
 \begin{exercice}{Créer son jeton d'accès}
 \begin{enumerate}
-  \item Sur GitHub, cliquez sur votre photo de profil (en haut à droite) $\rightarrow$ \gh{Settings}, puis tout en bas
-  du menu de gauche \gh{Developer settings} $\rightarrow$ \gh{Personal access tokens} $\rightarrow$
-  \gh{Tokens (classic)} $\rightarrow$ \gh{Generate new token (classic)}.
+  \item Ouvrez directement la page des jetons : \url{https://github.com/settings/tokens}, puis
+  \gh{Generate new token} $\rightarrow$ \gh{Generate new token (classic)}. GitHub peut vous redemander votre mot de passe.
+
+  \emph{Par les menus} : photo de profil \textbf{tout en haut à droite} $\rightarrow$ \gh{Settings}, puis tout en bas
+  de la colonne de gauche \gh{Developer settings} $\rightarrow$ \gh{Personal access tokens} $\rightarrow$
+  \gh{Tokens (classic)}.
+  \begin{attention}[Ne pas confondre]
+  L'onglet \gh{Settings} de la page d'un \emph{dépôt} (menu avec \gh{Collaborators}, \gh{Branches}, \gh{Webhooks}\ldots)
+  règle ce dépôt seulement : on n'y trouve pas \gh{Developer settings}. Les jetons se créent dans les paramètres
+  de votre \emph{compte}.
+  \end{attention}
   \item Remplissez :
   \begin{itemize}
     \item \emph{Note} : \cmd{tp-ciel} ;
