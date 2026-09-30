@@ -106,9 +106,9 @@
   \ifcorrige\\[2mm]{\bfseries\color{red!70!black} VERSION CORRIGÉE -- DOCUMENT ENSEIGNANT}\fi
   \tcblower
   \begin{tabularx}{\linewidth}{@{}>{\bfseries}l X@{}}
-    Durée      & 2 h à 3 h \\
+    Durée      & 3 h \\
     Prérequis  & ouvrir un terminal, utiliser \cmd{cd} et \cmd{ls}, éditer un fichier avec \cmd{nano} ou VS Code \\
-    Matériel   & poste avec Git (Git Bash sous Windows), navigateur web, adresse e-mail pour créer un compte GitHub \\
+    Matériel   & poste sous Ubuntu (droits \cmd{sudo} pour installer Git), navigateur web, adresse e-mail pour créer un compte GitHub \\
   \end{tabularx}
 \end{tcolorbox}
 
@@ -182,31 +182,90 @@ GitHub ne la connaît pas : si le PC tombe en panne ou si vous changez de poste,
 \end{correction}
 \end{exercice}
 
-\textbf{Configurer Git sur le poste.} Git inscrit votre nom et votre e-mail dans chaque commit. Ouvrez
-\textbf{Git Bash} (Windows) ou un terminal (Linux) et tapez, avec \emph{vos} informations :
+\textbf{Installer Git sur Ubuntu.} Ouvrez un terminal (\textbf{Ctrl+Alt+T}) et vérifiez si Git est présent :
 \begin{lstlisting}
 git --version
+\end{lstlisting}
+S'il répond \emph{Command 'git' not found} (« commande introuvable »), installez-le :
+\begin{lstlisting}
+sudo apt update
+sudo apt install git
+\end{lstlisting}
+\cmd{sudo} demande le mot de passe de votre session Ubuntu. Quand vous le tapez, \textbf{rien ne s'affiche} :
+c'est normal, tapez-le puis \textbf{Entrée}. Vérifiez ensuite avec \cmd{git --version}.
+
+\textbf{Configurer Git.} Git inscrit votre nom et votre e-mail dans chaque commit. Tapez, avec \emph{vos} informations :
+\begin{lstlisting}
 git config --global user.name "Prénom Nom"
 git config --global user.email "adresse-du-compte-github@exemple.fr"
 git config --global core.editor nano
 git config --global pull.rebase false
+git config --global credential.helper "cache --timeout=14400"
 \end{lstlisting}
-Les deux dernières lignes règlent le comportement de Git quand il fusionne votre travail avec celui d'un camarade
-(partie 6). Vérifiez avec \cmd{git config --global --list}.
+\begin{itemize}
+  \item \cmd{core.editor} et \cmd{pull.rebase} règlent le comportement de Git quand il fusionne votre travail avec
+  celui d'un camarade (partie 7).
+  \item \cmd{credential.helper} : Git retient votre jeton de connexion (voir ci-dessous) \emph{en mémoire} pendant
+  4 heures, sans l'écrire sur le disque. Vous n'avez pas à le recoller à chaque \cmd{git push}.
+\end{itemize}
+Vérifiez avec \cmd{git config --global --list}.
 
 \begin{attention}[Poste partagé]
-Sur un PC de la salle utilisé par d'autres élèves, vérifiez en début de séance que
-\cmd{git config user.name} affiche bien \emph{votre} nom. Sinon, refaites la configuration.
+Si d'autres élèves utilisent la même session Ubuntu, vérifiez en début de séance que \cmd{git config user.name}
+affiche bien \emph{votre} nom (sinon, refaites la configuration). En fin de séance, tapez
+\cmd{git credential-cache exit} pour que Git oublie votre jeton.
 \end{attention}
+
+% =====================================================================
+\section{Se connecter à GitHub depuis le terminal : le jeton}
+
+GitHub \textbf{refuse le mot de passe du compte} dans le terminal. À la place, on utilise un \textbf{jeton d'accès
+personnel} (\emph{personal access token}) : une longue clé secrète qui commence par \cmd{ghp_}.
+
+\begin{exercice}{Créer son jeton d'accès}
+\begin{enumerate}
+  \item Sur GitHub, cliquez sur votre photo de profil (en haut à droite) $\rightarrow$ \gh{Settings}, puis tout en bas
+  du menu de gauche \gh{Developer settings} $\rightarrow$ \gh{Personal access tokens} $\rightarrow$
+  \gh{Tokens (classic)} $\rightarrow$ \gh{Generate new token (classic)}.
+  \item Remplissez :
+  \begin{itemize}
+    \item \emph{Note} : \cmd{tp-ciel} ;
+    \item \emph{Expiration} : \gh{90 days} ;
+    \item cochez la case \gh{repo} (accès à vos dépôts).
+  \end{itemize}
+  Validez avec \gh{Generate token}.
+  \item \textbf{Copiez le jeton tout de suite} : GitHub ne l'affiche qu'une seule fois. Gardez-le en lieu sûr
+  (gestionnaire de mots de passe, par exemple). Si vous le perdez, il suffit d'en générer un nouveau.
+  \item Pourquoi ne faut-il \emph{jamais} écrire ce jeton dans un fichier de votre dépôt ? \reponse{2}
+\end{enumerate}
+\begin{correction}
+\begin{enumerate}
+  \item[4.] Le jeton donne accès à tous les dépôts de l'élève, comme un mot de passe. Poussé sur GitHub, il resterait
+  dans l'historique. D'ailleurs, GitHub détecte et révoque automatiquement les jetons publiés dans un dépôt public.
+\end{enumerate}
+Note enseignant : on choisit un jeton \emph{classic}, car les jetons \emph{fine-grained} ne donnent pas accès aux
+dépôts d'un autre compte dont on est seulement collaborateur (exercice en binôme). Alternative pérenne si chaque élève
+a son propre compte Ubuntu : une clé SSH (\cmd{ssh-keygen}, clé publique ajoutée dans \gh{Settings}
+$\rightarrow$ \gh{SSH and GPG keys}, clonage avec l'adresse \cmd{git@github.com:...}).
+\end{correction}
+\end{exercice}
 
 % =====================================================================
 \section{Récupérer son dépôt sur le PC : git clone}
 
 Sur la page GitHub de votre dépôt, cliquez sur le bouton vert \gh{Code}, onglet \gh{HTTPS}, et copiez l'adresse.
-Dans le terminal (dans Git Bash, collez avec \textbf{Maj+Inser} ou clic droit $\rightarrow$ \emph{Paste}) :
+Dans le terminal Ubuntu, on colle avec \textbf{Ctrl+Maj+V} (et non Ctrl+V) :
 \begin{lstlisting}
 cd ~
 git clone https://github.com/VOTRE-COMPTE/tp-git.git
+\end{lstlisting}
+Votre dépôt étant privé, Git demande de vous identifier :
+\begin{lstlisting}[style=sortie]
+Username for 'https://github.com': votre-nom-utilisateur-github
+Password for 'https://votre-nom-utilisateur-github@github.com': (collez le jeton)
+\end{lstlisting}
+Au lieu du mot de passe, \textbf{collez le jeton} (Ctrl+Maj+V). Rien ne s'affiche : c'est normal. Puis :
+\begin{lstlisting}
 cd tp-git
 ls
 git status
@@ -214,11 +273,9 @@ git status
 
 \cmd{git clone} ne se fait \textbf{qu'une seule fois} par poste : il crée le dossier \cmd{tp-git}, relié à GitHub.
 
-\begin{info}[Connexion à GitHub]
-La première fois, Git demande de vous connecter. Sous Windows, une fenêtre s'ouvre : choisissez
-\gh{Sign in with your browser} et autorisez l'accès. Le mot de passe du compte n'est pas accepté directement
-dans le terminal. Sous Linux, utilisez un \emph{jeton d'accès personnel} (\emph{personal access token}) créé dans
-\gh{Settings} $\rightarrow$ \gh{Developer settings}.
+\begin{info}[« Authentication failed » ?]
+Vous avez sans doute tapé le mot de passe du compte au lieu du jeton, ou fait une erreur dans le nom d'utilisateur.
+Recommencez la commande \cmd{git clone}.
 \end{info}
 
 \begin{exercice}{Cloner son dépôt}
