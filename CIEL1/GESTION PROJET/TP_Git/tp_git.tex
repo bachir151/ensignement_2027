@@ -1,5 +1,5 @@
 % =====================================================================
-%  TP Git pour débutants -- BTS CIEL 1re année -- Gestion de projet
+%  TP Git & GitHub pour débutants -- BTS CIEL 1re année -- Gestion de projet
 %
 %  Un seul source, deux PDF (voir Makefile) :
 %    Version élève   : pdflatex -jobname=TP_Git_debutant tp_git.tex
@@ -60,12 +60,14 @@
 \pagestyle{fancy}
 \fancyhf{}
 \lhead{\small BTS CIEL 1 -- Gestion de projet}
-\rhead{\small TP Git\ifcorrige{} -- \textcolor{red!70!black}{corrigé}\fi}
+\rhead{\small TP Git \& GitHub\ifcorrige{} -- \textcolor{red!70!black}{corrigé}\fi}
 \cfoot{\small \thepage/\pageref{LastPage}}
 
 % Commande en ligne : \detokenize permet d'écrire _ ~ : sans échappement
 % (pas d'accents ni de # dans l'argument).
 \newcommand{\cmd}[1]{\texttt{\textcolor{ciel!70!black}{\detokenize{#1}}}}
+% Élément de l'interface web de GitHub
+\newcommand{\gh}[1]{\textsf{\textbf{#1}}}
 
 \lstdefinestyle{bash}{
   basicstyle=\ttfamily\small, backgroundcolor=\color{gray!8},
@@ -89,9 +91,8 @@
   fonttitle=\bfseries, title={Exercice~\thetcbcounter~--~#1}}
 
 \tikzset{
-  zone/.style={draw, thick, rounded corners, minimum width=3.5cm, minimum height=1.4cm,
-               align=center, fill=#1},
-  commit/.style={circle, draw, thick, minimum size=8mm, inner sep=0pt, font=\small\bfseries, fill=#1},
+  zone/.style={draw, thick, rounded corners, minimum width=2.9cm, minimum height=1.4cm,
+               align=center, fill=#1, font=\small},
   >={Stealth[length=2.5mm]}
 }
 
@@ -99,15 +100,15 @@
 
 % =====================================================================
 \begin{tcolorbox}[colback=ciel!6, colframe=ciel, arc=2mm]
-  {\LARGE\bfseries TP -- Découvrir Git}\\[1mm]
-  {\large Versionner son travail et collaborer sur un projet}\\[2mm]
+  {\LARGE\bfseries TP -- Premiers pas avec Git et GitHub}\\[1mm]
+  {\large Sauvegarder et partager son travail, la bonne routine}\\[2mm]
   BTS CIEL -- 1\textsuperscript{re} année \hfill Gestion de projet
   \ifcorrige\\[2mm]{\bfseries\color{red!70!black} VERSION CORRIGÉE -- DOCUMENT ENSEIGNANT}\fi
   \tcblower
   \begin{tabularx}{\linewidth}{@{}>{\bfseries}l X@{}}
-    Durée      & 4 h : parties 0 à 8 ($\approx$ 3 h), parties 9 et 10 ($\approx$ 1 h, éventuellement en séance suivante) \\
-    Prérequis  & ouvrir un terminal, utiliser \cmd{cd}, \cmd{ls}, \cmd{mkdir}, \cmd{cat}, éditer un fichier avec \cmd{nano} \\
-    Matériel   & poste avec Git $\geq$ 2.28 (Git Bash sous Windows) ; compte GitHub ou GitLab pour la partie 9 \\
+    Durée      & 2 h à 3 h \\
+    Prérequis  & ouvrir un terminal, utiliser \cmd{cd} et \cmd{ls}, éditer un fichier avec \cmd{nano} ou VS Code \\
+    Matériel   & poste avec Git (Git Bash sous Windows), navigateur web, adresse e-mail pour créer un compte GitHub \\
   \end{tabularx}
 \end{tcolorbox}
 
@@ -117,735 +118,331 @@
 \vspace{2mm}
 \fi
 
-\textbf{Objectifs.} À la fin de ce TP, vous saurez :
-\begin{itemize}
-  \item expliquer l'intérêt d'un gestionnaire de versions et distinguer Git de GitHub ;
-  \item configurer Git, créer un dépôt, enregistrer des modifications et consulter l'historique ;
-  \item annuler une erreur sans panique ;
-  \item travailler avec des branches et résoudre un conflit ;
-  \item synchroniser votre travail avec un dépôt distant partagé.
-\end{itemize}
-
-\textbf{Conventions.} Les cadres gris contiennent des commandes à taper dans le terminal, ligne par ligne.
-Les cadres à barre bleue montrent ce que Git affiche. Selon la langue du système, les messages de Git
-peuvent apparaître en anglais ou en français.
+\textbf{Objectif.} Ce TP ne fait pas de vous des experts de Git. Il vous apprend \textbf{une routine} que vous
+utiliserez dans tous vos TP et dans votre projet de 2\textsuperscript{e} année :
+\begin{center}
+\cmd{git pull} $\rightarrow$ travailler $\rightarrow$ \cmd{git status} $\rightarrow$ \cmd{git add}
+$\rightarrow$ \cmd{git commit} $\rightarrow$ \cmd{git push}
+\end{center}
+À la fin du TP, votre travail sera sauvegardé sur GitHub, avec l'historique de chaque modification.
 
 % =====================================================================
-\section{Pourquoi un gestionnaire de versions ?}
-
-Imaginez votre projet de 2\textsuperscript{e} année (épreuve E6) : trois ou quatre étudiants travaillent
-sur les mêmes fichiers (code, documentation, configurations d'équipements). Sans outil adapté,
-on voit vite apparaître ceci :
-
-\begin{lstlisting}[style=sortie]
-rapport.docx   rapport_v2.docx   rapport_v2_final.docx   rapport_v2_final_OK_bis.docx
-\end{lstlisting}
-
-et des questions auxquelles plus personne ne sait répondre : \emph{qui} a modifié ce fichier, \emph{quand}
-et \emph{pourquoi} ? Comment revenir à la version qui fonctionnait hier ? Comment réunir le travail de
-deux personnes sans écraser celui de l'une d'elles ?
-
-Un \textbf{gestionnaire de versions} (\emph{VCS, Version Control System}) enregistre l'historique complet des
-modifications d'un ensemble de fichiers. \textbf{Git} est aujourd'hui le plus utilisé. Il a été créé en 2005 par
-Linus Torvalds pour le développement du noyau Linux. Il est \emph{décentralisé} : chaque copie d'un dépôt
-contient tout l'historique, et l'on peut travailler sans connexion.
-
-\begin{info}[Git n'est pas GitHub]
-\textbf{Git} est un \emph{logiciel} installé sur votre poste.
-\textbf{GitHub}, \textbf{GitLab} ou \textbf{Gitea} sont des \emph{services d'hébergement} de dépôts Git
-(sites web) qui ajoutent la gestion des collaborateurs, des tickets, etc. On peut utiliser Git sans jamais
-utiliser GitHub.
-\end{info}
-
-\needspace{8\baselineskip}
-\textbf{Vocabulaire essentiel}
-
-\begin{tabularx}{\linewidth}{@{}>{\bfseries\raggedright\arraybackslash}p{4.1cm} X@{}}
-\toprule
-Dépôt (\emph{repository}) & Dossier suivi par Git. L'historique est stocké dans le sous-dossier caché \cmd{.git}. \\
-Commit & Instantané enregistré de l'état des fichiers, avec un auteur, une date, un message et un identifiant unique. \\
-Index (\emph{staging area}) & Zone de préparation : ce que l'on a choisi de mettre dans le prochain commit. \\
-Branche & Ligne de développement indépendante. Techniquement, un simple pointeur vers un commit. \\
-HEAD & Indique où l'on se trouve : en général, la branche courante. \\
-Dépôt distant (\emph{remote}) & Copie du dépôt hébergée sur un serveur, habituellement nommée \cmd{origin}. \\
-\bottomrule
-\end{tabularx}
-
-\begin{exercice}{Réflexion (5 min)}
-\begin{enumerate}
-  \item Citez deux situations de votre vie d'étudiant où un historique des versions vous aurait été utile.
-  \reponse{3}
-  \item Pour chaque affirmation, indiquez s'il s'agit de \textbf{Git} ou de \textbf{GitHub} :
-  \begin{enumerate}[label=\alph*)]
-    \item s'installe et s'exécute sur votre poste : \ifcorrige\else\makebox[3cm]{\dotfill}\fi
-    \item site web qui héberge des dépôts et gère les droits des collaborateurs : \ifcorrige\else\makebox[3cm]{\dotfill}\fi
-    \item fonctionne sans connexion Internet : \ifcorrige\else\makebox[3cm]{\dotfill}\fi
-    \item appartient à Microsoft depuis 2018 : \ifcorrige\else\makebox[3cm]{\dotfill}\fi
-  \end{enumerate}
-\end{enumerate}
-\begin{correction}
-\begin{enumerate}
-  \item Réponses libres, par exemple : retrouver la version d'un compte rendu avant une mauvaise
-  modification, savoir qui a changé la configuration d'un routeur dans un projet de groupe, fusionner
-  les parties d'un rapport rédigées par plusieurs personnes.
-  \item a) Git \quad b) GitHub \quad c) Git \quad d) GitHub.
-\end{enumerate}
-\end{correction}
-\end{exercice}
-
-% =====================================================================
-\section{Installer et configurer Git}
-
-Vérifiez d'abord que Git est installé :
-\begin{lstlisting}
-git --version
-\end{lstlisting}
-S'il ne l'est pas : sous Windows, installez \emph{Git for Windows} (\url{https://git-scm.com}) puis
-utilisez le terminal \textbf{Git Bash}. Sous Debian ou Ubuntu : \cmd{sudo apt install git}.
-
-Avant le premier commit, Git doit savoir \emph{qui vous êtes}. Remplacez les valeurs entre guillemets :
-\begin{lstlisting}
-git config --global user.name "Prénom Nom"
-git config --global user.email "prenom.nom@exemple.fr"
-git config --global init.defaultBranch main
-git config --global core.editor nano
-git config --global pull.rebase false
-\end{lstlisting}
+\section{Git et GitHub en deux mots}
 
 \begin{itemize}
-  \item \cmd{user.name} et \cmd{user.email} : identité inscrite dans \emph{chaque} commit. Utilisez la même
-  adresse que sur votre compte GitHub ou GitLab.
-  \item \cmd{init.defaultBranch main} : nom de la branche principale des nouveaux dépôts
-  (anciennement \cmd{master}).
-  \item \cmd{core.editor nano} : éditeur que Git ouvre quand il a besoin d'un texte. Pour enregistrer et quitter
-  \cmd{nano} : \textbf{Ctrl+O}, \textbf{Entrée}, puis \textbf{Ctrl+X}.
-  \item \cmd{pull.rebase false} : demande à \cmd{git pull} de fusionner (\emph{merge}), le comportement le plus
-  simple à comprendre (voir partie 9).
-  \item \cmd{--global} : le réglage vaut pour tous vos dépôts. Il est stocké dans le fichier \cmd{~/.gitconfig}.
+  \item \textbf{Git} est un logiciel installé sur votre PC. Il enregistre l'historique de vos fichiers : chaque
+  sauvegarde s'appelle un \textbf{commit} (une « photo » de vos fichiers, avec un message et votre nom).
+  \item \textbf{GitHub} est un site web qui héberge une copie de votre travail. Vous le retrouvez depuis n'importe
+  quel PC, et vous pouvez le partager avec votre équipe.
+  \item Un \textbf{dépôt} (\emph{repository}, ou \emph{repo}) est un dossier de projet suivi par Git. Il existe en
+  deux exemplaires : le dépôt \textbf{distant} sur GitHub et le dépôt \textbf{local} sur votre PC.
 \end{itemize}
-
-\begin{info}[Obtenir de l'aide]
-\cmd{git <commande> -h} affiche un résumé des options, \cmd{git help <commande>} la documentation complète.
-\end{info}
-
-\begin{exercice}{Configurer Git}
-\begin{enumerate}
-  \item Affichez la version de Git installée et notez-la. \reponse{1}
-  \item Appliquez la configuration ci-dessus avec \emph{vos} informations.
-  \item Affichez la configuration avec \cmd{git config --global --list}, puis le contenu du fichier avec
-  \cmd{cat ~/.gitconfig}. Que constatez-vous ? \reponse{2}
-  \item Quelle commande affiche uniquement l'adresse e-mail configurée ? \reponse{1}
-\end{enumerate}
-\begin{correction}
-\begin{enumerate}
-  \item[1.] Il faut au moins Git 2.23 pour \cmd{git switch} et \cmd{git restore}, et 2.28 pour
-  \cmd{init.defaultBranch}. Sinon, mettre Git à jour.
-  \item[3.] On retrouve les mêmes informations, rangées en sections \cmd{[user]}, \cmd{[init]}, \cmd{[core]} et
-  \cmd{[pull]}. \cmd{git config --global} ne fait qu'écrire dans ce simple fichier texte.
-  \item[4.] \cmd{git config user.email}
-\end{enumerate}
-\end{correction}
-\end{exercice}
-
-% =====================================================================
-\section{Les trois zones de Git}
-
-Git n'enregistre rien automatiquement : vous choisissez explicitement ce qui entre dans un commit, en deux temps.
 
 \begin{center}
-\begin{tikzpicture}[node distance=2.1cm]
-  \node[zone=blue!8]                   (wd)   {Répertoire\\de travail};
-  \node[zone=orange!12, right=of wd]   (idx)  {Index\\(\emph{staging area})};
-  \node[zone=green!12, right=of idx]   (repo) {Dépôt local\\(dossier \texttt{.git})};
-  \draw[->, thick] (wd.north east)  to[bend left=30] node[above]{\texttt{git add}}    (idx.north west);
-  \draw[->, thick] (idx.north east) to[bend left=30] node[above]{\texttt{git commit}} (repo.north west);
-  \draw[->, thick, dashed] (idx.south west)  to[bend left=30] node[below]{\texttt{git restore}}           (wd.south east);
-  \draw[->, thick, dashed] (repo.south west) to[bend left=30] node[below]{\texttt{git restore -{}-staged}} (idx.south east);
+\begin{tikzpicture}[node distance=1.55cm]
+  \node[zone=blue!8]                  (wd)  {Fichiers\\modifiés};
+  \node[zone=orange!12, right=of wd]  (idx) {Prêts à être\\enregistrés};
+  \node[zone=yellow!15, right=of idx] (loc) {Historique\\sur le PC};
+  \node[zone=green!12, right=of loc]  (gh)  {GitHub\\(en ligne)};
+  \draw[->, thick] (wd.north east)  to[bend left=35] node[above, font=\small]{\texttt{git add}}    (idx.north west);
+  \draw[->, thick] (idx.north east) to[bend left=35] node[above, font=\small]{\texttt{git commit}} (loc.north west);
+  \draw[->, thick] (loc.north east) to[bend left=35] node[above, font=\small]{\texttt{git push}}   (gh.north west);
+  \draw[->, thick, dashed] (gh.south) to[bend left=14] node[below=1pt, font=\small]{\texttt{git pull} : récupérer les nouveautés de GitHub} (wd.south);
+  \draw[gray, rounded corners, densely dotted] ([xshift=-2mm,yshift=11mm]wd.north west) rectangle ([xshift=2mm,yshift=-3mm]loc.south east);
+  \node[font=\footnotesize\itshape, text=gray!60!black, anchor=north west] at ([xshift=-1mm,yshift=10mm]wd.north west) {sur votre PC};
 \end{tikzpicture}
 \end{center}
 
-\begin{enumerate}
-  \item \textbf{Répertoire de travail} : les fichiers tels que vous les voyez et les modifiez.
-  \item \textbf{Index} : \cmd{git add} y dépose les modifications à inclure dans le prochain commit.
-  C'est comme préparer un colis avant de l'expédier.
-  \item \textbf{Dépôt} : \cmd{git commit} enregistre le contenu de l'index dans l'historique.
-\end{enumerate}
-
-Un fichier peut donc être dans l'un des états suivants, que la commande \cmd{git status} indique :
-
-\begin{tabularx}{\linewidth}{@{}>{\bfseries}l X@{}}
-\toprule
-non suivi (\emph{untracked}) & Git ne connaît pas encore ce fichier. \\
-modifié (\emph{modified})    & Le fichier diffère de la dernière version enregistrée, mais la modification n'est pas indexée. \\
-indexé (\emph{staged})       & La modification est prête à entrer dans le prochain commit. \\
-validé (\emph{committed})    & Le fichier est identique à la dernière version enregistrée. \\
-\bottomrule
-\end{tabularx}
-
-\begin{info}[Le réflexe à prendre]
-Tapez \cmd{git status} avant et après chaque commande. C'est la commande la plus utile de Git :
-elle dit où vous en êtes et suggère souvent la commande suivante.
+\begin{info}[Commit ou push ?]
+\cmd{git commit} enregistre une version \emph{sur votre PC}. Tant que vous n'avez pas fait \cmd{git push},
+GitHub ne la connaît pas : si le PC tombe en panne ou si vous changez de poste, elle est perdue.
 \end{info}
 
 % =====================================================================
-\section{Créer son premier dépôt}
+\section{Préparer GitHub et son poste}
 
-\textbf{Fil rouge du TP} : vous documentez le réseau de la salle de TP B204 (plan d'adressage, inventaire
-du matériel, README). Tous les fichiers sont de simples fichiers texte.
+\begin{exercice}{Créer son compte et son premier dépôt sur GitHub}
+\begin{enumerate}
+  \item Sur \url{https://github.com}, créez un compte (\gh{Sign up}). Choisissez un nom d'utilisateur sérieux :
+  il pourra apparaître sur votre CV. Notez-le. \reponse{1}
+  \item Créez un dépôt : bouton \gh{+} en haut à droite, puis \gh{New repository}.
+  \begin{itemize}
+    \item \emph{Repository name} : \cmd{tp-git} ;
+    \item visibilité : \gh{Private} ;
+    \item activez l'option qui ajoute un fichier \gh{README} ;
+    \item validez avec \gh{Create repository}.
+  \end{itemize}
+  \item Que contient votre dépôt ? Cliquez sur l'horloge « \gh{1 Commit} » : quel est le message de ce commit ? \reponse{2}
+\end{enumerate}
+\begin{correction}
+\begin{enumerate}
+  \item[3.] Un seul fichier, \cmd{README.md}, créé par GitHub avec le commit \emph{Initial commit}.
+  Le dépôt a donc déjà un historique d'un commit.
+\end{enumerate}
+\end{correction}
+\end{exercice}
 
+\textbf{Configurer Git sur le poste.} Git inscrit votre nom et votre e-mail dans chaque commit. Ouvrez
+\textbf{Git Bash} (Windows) ou un terminal (Linux) et tapez, avec \emph{vos} informations :
 \begin{lstlisting}
-mkdir ~/tp-git
-cd ~/tp-git
-git init
-ls -a
-git status
+git --version
+git config --global user.name "Prénom Nom"
+git config --global user.email "adresse-du-compte-github@exemple.fr"
+git config --global core.editor nano
+git config --global pull.rebase false
 \end{lstlisting}
+Les deux dernières lignes règlent le comportement de Git quand il fusionne votre travail avec celui d'un camarade
+(partie 6). Vérifiez avec \cmd{git config --global --list}.
 
-\cmd{git init} crée le sous-dossier caché \cmd{.git}, qui contient tout l'historique et la configuration du dépôt.
-
-\begin{attention}
-\begin{itemize}[leftmargin=*]
-  \item Ne modifiez jamais le contenu de \cmd{.git} à la main. Le supprimer, c'est perdre tout l'historique.
-  \item Ne créez pas de dépôt dans un dossier qui est déjà dans un dépôt. En particulier, ne lancez pas
-  \cmd{git init} directement dans votre dossier personnel.
-\end{itemize}
+\begin{attention}[Poste partagé]
+Sur un PC de la salle utilisé par d'autres élèves, vérifiez en début de séance que
+\cmd{git config user.name} affiche bien \emph{votre} nom. Sinon, refaites la configuration.
 \end{attention}
 
-\begin{exercice}{Premier commit}
-\begin{enumerate}
-  \item Exécutez les commandes ci-dessus. Quel message affiche \cmd{git init} ? Que montre \cmd{ls -a} ?
-  \reponse{2}
-  \item Créez un fichier \cmd{README.md} et observez son état :
-\begin{lstlisting}
-echo "# Documentation du réseau de la salle B204" > README.md
-git status
-\end{lstlisting}
-  Dans quelle rubrique apparaît \cmd{README.md} ? \reponse{1}
-  \item Indexez le fichier puis observez :
-\begin{lstlisting}
-git add README.md
-git status
-\end{lstlisting}
-  Dans quelle rubrique apparaît-il maintenant ? \reponse{1}
-  \item Validez :
-\begin{lstlisting}
-git commit -m "Ajout du README"
-git status
-\end{lstlisting}
-  Que signifie le message affiché par \cmd{git status} ? \reponse{2}
-\end{enumerate}
-\begin{correction}
-\begin{enumerate}
-  \item \cmd{Initialized empty Git repository in .../tp-git/.git/} (en français : « Dépôt Git vide initialisé
-  dans \ldots »). \cmd{ls -a} montre \cmd{.}, \cmd{..} et \cmd{.git}. \cmd{git status} indique qu'il n'y a encore aucun commit.
-  \item \emph{Untracked files} (fichiers non suivis).
-  \item \emph{Changes to be committed} (modifications qui seront validées), avec \emph{new file: README.md}.
-  \item Le commit affiche \cmd{[main (root-commit) a1b2c3d] Ajout du README}. Ensuite, \cmd{git status} affiche
-  \emph{nothing to commit, working tree clean} (rien à valider, la copie de travail est propre) :
-  le répertoire de travail est identique au dernier commit.
-\end{enumerate}
-\end{correction}
-\end{exercice}
+% =====================================================================
+\section{Récupérer son dépôt sur le PC : git clone}
 
-\begin{exercice}{Le cycle modifier, indexer, valider}
-\begin{enumerate}
-  \item Avec \cmd{nano plan_adressage.txt}, créez le fichier suivant :
+Sur la page GitHub de votre dépôt, cliquez sur le bouton vert \gh{Code}, onglet \gh{HTTPS}, et copiez l'adresse.
+Dans le terminal (dans Git Bash, collez avec \textbf{Maj+Inser} ou clic droit $\rightarrow$ \emph{Paste}) :
 \begin{lstlisting}
-# Plan d'adressage - salle B204
-VLAN 10  ADMIN    192.168.10.0/24  passerelle 192.168.10.254
-VLAN 20  ELEVES   192.168.20.0/24  passerelle 192.168.20.254
+cd ~
+git clone https://github.com/VOTRE-COMPTE/tp-git.git
+cd tp-git
+ls
+git status
 \end{lstlisting}
-  \item Indexez et validez ce fichier avec le message « Ajout du plan d'adressage ». \reponse{2}
-  \item Ajoutez une ligne au README (attention : \cmd{>>} ajoute à la fin du fichier, \cmd{>} l'écrase) :
-\begin{lstlisting}
-echo "Responsable : Prénom Nom" >> README.md
-\end{lstlisting}
-  \item Lancez \cmd{git status}. Dans quel état est \cmd{README.md} ? \reponse{1}
-  \item Enregistrez cette modification dans un nouveau commit, avec un message pertinent. \reponse{2}
-  \item Combien de commits contient le dépôt ? Vérifiez avec \cmd{git log --oneline}. \reponse{1}
-\end{enumerate}
-\begin{correction}
-\begin{enumerate}
-  \item[2.] \cmd{git add plan_adressage.txt} puis \cmd{git commit -m "Ajout du plan d'adressage"}.
-  \item[4.] Modifié (\emph{modified}), dans la rubrique \emph{Changes not staged for commit}.
-  \item[5.] \cmd{git add README.md} puis, par exemple, \cmd{git commit -m "Ajout du responsable dans le README"}.
-  \item[6.] Trois commits, affichés du plus récent au plus ancien.
-\end{enumerate}
-\end{correction}
-\end{exercice}
 
-\begin{info}[Indexer plusieurs fichiers]
-\cmd{git add .} indexe tout le contenu du dossier courant. C'est pratique, mais on risque d'embarquer un fichier
-non désiré (brouillon, capture, mot de passe). Vérifiez toujours avec \cmd{git status} avant de valider.
+\cmd{git clone} ne se fait \textbf{qu'une seule fois} par poste : il crée le dossier \cmd{tp-git}, relié à GitHub.
+
+\begin{info}[Connexion à GitHub]
+La première fois, Git demande de vous connecter. Sous Windows, une fenêtre s'ouvre : choisissez
+\gh{Sign in with your browser} et autorisez l'accès. Le mot de passe du compte n'est pas accepté directement
+dans le terminal. Sous Linux, utilisez un \emph{jeton d'accès personnel} (\emph{personal access token}) créé dans
+\gh{Settings} $\rightarrow$ \gh{Developer settings}.
 \end{info}
 
-% =====================================================================
-\section{Explorer l'historique}
+\begin{exercice}{Cloner son dépôt}
+\begin{enumerate}
+  \item Clonez votre dépôt avec les commandes ci-dessus. Quel(s) fichier(s) voyez-vous avec \cmd{ls} ? \reponse{1}
+  \item Recopiez les deux premières lignes affichées par \cmd{git status}. \reponse{2}
+\end{enumerate}
+\begin{correction}
+\begin{enumerate}
+  \item \cmd{README.md}. Il existe aussi un dossier caché \cmd{.git} (visible avec \cmd{ls -a}) : c'est là que Git
+  range l'historique. On n'y touche jamais.
+  \item \cmd{On branch main} puis \cmd{Your branch is up to date with 'origin/main'.} (en français :
+  « Sur la branche main. Votre branche est à jour avec 'origin/main'. »). \cmd{origin} désigne GitHub.
+  En dernière ligne : \emph{nothing to commit, working tree clean}, rien à enregistrer.
+\end{enumerate}
+\end{correction}
+\end{exercice}
 
-\begin{tabularx}{\linewidth}{@{}>{\raggedright\arraybackslash}p{6.2cm} X@{}}
+% =====================================================================
+\section{La routine : status, add, commit, push}
+
+\begin{tabularx}{\linewidth}{@{}>{\raggedright\arraybackslash}p{5.3cm} X@{}}
 \toprule
 \textbf{Commande} & \textbf{Rôle} \\
 \midrule
-\cmd{git log}                      & historique détaillé (touche \textbf{q} pour quitter) \\
-\cmd{git log --oneline}            & une ligne par commit \\
-\cmd{git log --oneline --graph --all} & historique avec toutes les branches (utile en partie 8) \\
-\cmd{git show <id>}                & détail d'un commit : auteur, date, message, différences \\
-\cmd{git diff}                     & différences entre répertoire de travail et index (ce qui n'est pas indexé) \\
-\cmd{git diff --staged}            & différences entre index et dernier commit (ce qui va être validé) \\
+\cmd{git status}               & « Où en suis-je ? » : quels fichiers sont nouveaux, modifiés, prêts à être enregistrés. \textbf{À taper tout le temps.} \\
+\cmd{git add fichier}          & sélectionne un fichier pour le prochain commit (\cmd{git add .} sélectionne tout le dossier) \\
+\cmd{git commit -m "message"}  & enregistre les fichiers sélectionnés, avec un message qui dit ce qui a changé \\
+\cmd{git push}                 & envoie les commits vers GitHub \\
 \bottomrule
 \end{tabularx}
 
-\begin{info}[Identifiant d'un commit]
-Chaque commit est identifié par une empreinte (\emph{hash}) de 40 caractères hexadécimaux, calculée à partir de son
-contenu, par exemple \cmd{3f2a9c1e...}. Les 7 premiers caractères suffisent en général pour le désigner.
-\end{info}
-
-\begin{exercice}{Lire les différences}
+\begin{exercice}{Premier cycle complet (guidé)}
+Vous allez documenter le réseau de la salle B204.
 \begin{enumerate}
-  \item Ajoutez cette ligne à la fin de \cmd{plan_adressage.txt} :
+  \item Dans le dossier \cmd{tp-git}, créez le fichier \cmd{plan_adressage.txt} avec \cmd{nano plan_adressage.txt}
+  (enregistrer : \textbf{Ctrl+O}, \textbf{Entrée} ; quitter : \textbf{Ctrl+X}) :
 \begin{lstlisting}
-VLAN 30  SERVEURS 192.168.30.0/24  passerelle 192.168.30.254
+Plan d'adressage - salle B204
+VLAN 10  ADMIN    192.168.10.0/24  passerelle 192.168.10.254
+VLAN 20  ELEVES   192.168.20.0/24  passerelle 192.168.20.254
 \end{lstlisting}
-  \item Sans indexer, tapez \cmd{git diff}. Comment Git signale-t-il la ligne ajoutée ? \reponse{1}
-  \item Tapez \cmd{git add plan_adressage.txt}, puis de nouveau \cmd{git diff}. Qu'affiche Git ? Pourquoi ? \reponse{2}
-  \item Tapez \cmd{git diff --staged}. Qu'observez-vous ? \reponse{1}
-  \item Validez avec le message « Ajout du VLAN 30 (serveurs) ». Avec \cmd{git log --oneline}, repérez l'identifiant
-  du commit qui a créé le plan d'adressage, puis affichez-le avec \cmd{git show}. Qui en est l'auteur ? \reponse{1}
+  \item \cmd{git status} : dans quelle rubrique, et de quelle couleur, apparaît le fichier ? \reponse{1}
+  \item \cmd{git add plan_adressage.txt}, puis \cmd{git status}. Qu'est-ce qui a changé ? \reponse{1}
+  \item Enregistrez :
+\begin{lstlisting}
+git commit -m "Ajout du plan d'adressage de la salle B204"
+git status
+\end{lstlisting}
+  Que vous dit maintenant \cmd{git status} ? Quelle commande vous suggère-t-il ? \reponse{2}
+  \item Envoyez vers GitHub avec \cmd{git push}, puis \cmd{git status}. Rafraîchissez la page GitHub : que voyez-vous ?
+  \reponse{2}
 \end{enumerate}
 \begin{correction}
 \begin{enumerate}
-  \item[2.] La ligne est précédée d'un \cmd{+} (en vert). Une ligne supprimée serait précédée d'un \cmd{-} (en rouge).
-  \item[3.] Rien : \cmd{git diff} compare le répertoire de travail à l'index. Après \cmd{git add}, ils sont identiques.
-  \item[4.] La ligne ajoutée réapparaît : \cmd{git diff --staged} compare l'index au dernier commit.
-  \item[5.] L'auteur est celui défini par \cmd{user.name} et \cmd{user.email}, d'où l'importance de la configuration.
+  \item[2.] \emph{Untracked files} (fichiers non suivis), en rouge : Git voit le fichier mais ne le suit pas encore.
+  \item[3.] Le fichier passe dans \emph{Changes to be committed}, en vert : il sera dans le prochain commit.
+  \item[4.] \cmd{Your branch is ahead of 'origin/main' by 1 commit.} suivi de
+  \cmd{(use "git push" to publish your local commits)}. Le commit existe sur le PC, pas encore sur GitHub.
+  \item[5.] \cmd{git status} revient à \emph{up to date with 'origin/main'}. Sur GitHub, le fichier
+  \cmd{plan_adressage.txt} apparaît avec le message du commit, et le compteur passe à 2 commits.
 \end{enumerate}
 \end{correction}
 \end{exercice}
 
-% =====================================================================
-\needspace{12\baselineskip}
-\section{Écrire de bons messages de commit}
+\begin{info}[Lire git status]
+\begin{tabularx}{\linewidth}{@{}>{\raggedright\arraybackslash}p{7cm} X@{}}
+\emph{Untracked files} (rouge)            & nouveau fichier, pas encore suivi $\rightarrow$ \cmd{git add} \\
+\emph{Changes not staged for commit} (rouge) & fichier modifié, pas encore sélectionné $\rightarrow$ \cmd{git add} \\
+\emph{Changes to be committed} (vert)     & prêt à être enregistré $\rightarrow$ \cmd{git commit} \\
+\emph{Your branch is ahead of 'origin/main'} & commits pas encore envoyés $\rightarrow$ \cmd{git push} \\
+\emph{nothing to commit, working tree clean} & tout est enregistré \\
+\end{tabularx}
+\end{info}
 
-L'historique n'est utile que s'il est lisible. Quelques règles :
-\begin{itemize}
-  \item une ligne courte (environ 50 caractères au plus) qui résume la modification ;
-  \item décrire \emph{ce qui} change et, si c'est utile, \emph{pourquoi} ;
-  \item un commit correspond à \emph{une} modification cohérente : ne mélangez pas « ajout du VLAN 30 » et
-  « correction d'une faute dans le README » ;
-  \item bannir les messages vides de sens : « modif », « test », « ok »\ldots
-\end{itemize}
-Pour un message long, tapez \cmd{git commit} sans \cmd{-m} : l'éditeur s'ouvre. Écrivez le résumé sur la première
-ligne, laissez une ligne vide, puis donnez les détails.
+\begin{exercice}{À vous de jouer (sans aide)}
+\begin{enumerate}
+  \item Ajoutez au plan d'adressage la ligne suivante :
+\begin{lstlisting}
+VLAN 30  SERVEURS 192.168.30.0/24  passerelle 192.168.30.254
+\end{lstlisting}
+  \item Créez un fichier \cmd{inventaire.csv} :
+\begin{lstlisting}
+nom;type;ip
+SW-B204;switch;192.168.10.2
+PC-B204-01;poste;192.168.20.11
+\end{lstlisting}
+  \item Faites \textbf{deux commits séparés} (un par modification), avec des messages clairs, puis envoyez-les sur
+  GitHub. Notez ci-dessous toutes les commandes utilisées, dans l'ordre. \reponse{7}
+  \item Sur GitHub, cliquez sur le compteur de commits. Combien y en a-t-il ? \reponse{1}
+\end{enumerate}
+\begin{correction}
+\begin{lstlisting}
+nano plan_adressage.txt
+git status
+git add plan_adressage.txt
+git commit -m "Ajout du VLAN 30 (serveurs)"
+nano inventaire.csv
+git add inventaire.csv
+git commit -m "Ajout de l'inventaire du matériel"
+git push
+\end{lstlisting}
+Un seul \cmd{git push} suffit pour envoyer les deux commits. GitHub affiche 4 commits : \emph{Initial commit} et les
+trois commits de l'élève. On valorise les \cmd{git status} intercalés.
+\end{correction}
+\end{exercice}
+
+\textbf{Voir l'historique.} Sur le PC, \cmd{git log --oneline} affiche un commit par ligne, du plus récent au plus
+ancien. Sur GitHub, le compteur de commits donne la même liste. En cliquant sur un commit, on voit les lignes
+ajoutées (en vert) et supprimées (en rouge).
 
 \begin{exercice}{Bon ou mauvais message ?}
-Pour chaque message, indiquez s'il est bon (B) ou mauvais (M) et justifiez en quelques mots.
+Un bon message dit \emph{ce qui a changé}, en une phrase courte. Pour chaque message, indiquez B (bon) ou M (mauvais).
 
-\renewcommand{\arraystretch}{1.6}
-\begin{tabularx}{\linewidth}{@{}l p{7.2cm} c X@{}}
+\renewcommand{\arraystretch}{1.5}
+\begin{tabularx}{\linewidth}{@{}l X c@{}}
 \toprule
-& \textbf{Message} & \textbf{B/M} & \textbf{Justification} \\
+& \textbf{Message} & \textbf{B/M} \\
 \midrule
-1 & « modif » & & \\
-2 & « Ajout du VLAN 30 (serveurs) au plan d'adressage » & & \\
-3 & « Correction passerelle VLAN 20 : .254 au lieu de .1 » & & \\
-4 & « trucs du mardi » & & \\
-5 & « Ajout inventaire, correction README, changement plan, suppression tests » & & \\
-6 & « Suppression du mot de passe laissé dans config.txt » & & \\
+1 & « modif » & \ifcorrige M\fi \\
+2 & « Ajout du VLAN 30 (serveurs) au plan d'adressage » & \ifcorrige B\fi \\
+3 & « azerty » & \ifcorrige M\fi \\
+4 & « Correction de l'adresse IP du switch dans l'inventaire » & \ifcorrige B\fi \\
+5 & « travail de mardi » & \ifcorrige M\fi \\
 \bottomrule
 \end{tabularx}
 \renewcommand{\arraystretch}{1}
 \begin{correction}
-\begin{enumerate}
-  \item M : ne dit rien de la modification.
-  \item B : précis, on sait ce qui a changé.
-  \item B : précis, et le « pourquoi » est explicite.
-  \item M : aucune information exploitable.
-  \item M : quatre modifications sans rapport. Il fallait faire quatre commits.
-  \item B pour le message, mais il signale un problème de sécurité : le mot de passe \emph{reste dans l'historique}
-  (visible avec \cmd{git show}). Il doit être considéré comme compromis et changé (voir partie 7).
-\end{enumerate}
+Les messages 1, 3 et 5 ne disent rien de la modification : dans trois mois, personne (ni vous) ne saura ce qu'ils
+contiennent.
 \end{correction}
 \end{exercice}
 
 % =====================================================================
-\section{Annuler et corriger}
+\section{Récupérer les nouveautés : git pull}
 
-\begin{tabularx}{\linewidth}{@{}>{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}p{4.2cm} >{\raggedright\arraybackslash}X@{}}
-\toprule
-\textbf{Situation} & \textbf{Commande} & \textbf{Effet} \\
-\midrule
-J'ai modifié un fichier et je veux abandonner ces modifications (non indexées).
-  & \cmd{git restore fichier}
-  & Remet le fichier dans l'état de l'index. \textbf{Les modifications sont perdues.} \\
-J'ai indexé un fichier par erreur.
-  & \cmd{git restore --staged fichier}
-  & Retire le fichier de l'index. Les modifications restent dans le répertoire de travail. \\
-Le message de mon dernier commit est faux, ou j'ai oublié un fichier (commit pas encore partagé).
-  & \cmd{git commit --amend}
-  & Remplace le dernier commit par un nouveau. \\
-Un commit, même déjà partagé, a introduit une erreur.
-  & \cmd{git revert <id>}
-  & Crée un \emph{nouveau} commit qui annule l'effet de l'ancien. L'historique est conservé. \\
-Je veux voir une ancienne version d'un fichier.
-  & \cmd{git show <id>:fichier}
-  & Affiche le fichier tel qu'il était dans ce commit. \\
-\bottomrule
-\end{tabularx}
+Quand le dépôt GitHub a changé (modification par un camarade, ou par vous depuis un autre PC), on récupère ces
+changements avec \cmd{git pull}.
 
-\begin{attention}
-\cmd{git commit --amend} \emph{réécrit} l'historique. Ne l'utilisez jamais sur un commit déjà envoyé
-(\cmd{git push}) vers un dépôt partagé. Vous croiserez aussi \cmd{git reset --hard} dans des tutoriels :
-cette commande est puissante mais destructrice, et elle n'est pas utilisée dans ce TP.
+\begin{exercice}{Modifier sur GitHub, récupérer sur le PC}
+\begin{enumerate}
+  \item Sur GitHub, ouvrez \cmd{README.md}, cliquez sur le crayon (\gh{Edit this file}) et ajoutez la ligne :
+  \emph{Documentation du réseau de la salle B204 -- Prénom Nom}. Validez avec \gh{Commit changes}.
+  \item Sur le PC, tapez \cmd{git status}. Git signale-t-il la modification faite sur GitHub ? \reponse{1}
+  \item Tapez \cmd{git pull}, puis affichez le README avec \cmd{cat README.md}. \reponse{1}
+  \item Pourquoi \cmd{git status} ne voyait-il pas la modification à la question 2 ? \reponse{2}
+\end{enumerate}
+\begin{correction}
+\begin{enumerate}
+  \item[2.] Non : il affiche toujours \emph{up to date with 'origin/main'}.
+  \item[3.] Git affiche \emph{Fast-forward} et le README contient la nouvelle ligne.
+  \item[4.] \cmd{git status} ne contacte pas GitHub : il compare avec le dernier état de GitHub \emph{connu} du PC.
+  Seuls \cmd{git pull} (et \cmd{git fetch}) vont chercher les nouveautés. D'où la règle :
+  \textbf{toujours commencer par \cmd{git pull}}.
+\end{enumerate}
+\end{correction}
+\end{exercice}
+
+\begin{attention}[Jamais de mot de passe sur GitHub]
+Tout ce qui est poussé sur GitHub reste dans l'historique, même si l'on supprime le fichier ensuite.
+Ne versionnez jamais un mot de passe, une clé ou une configuration contenant un secret. Si cela arrive,
+le mot de passe doit être considéré comme compromis et changé.
 \end{attention}
 
-\begin{exercice}{Réparer ses erreurs}
-\textbf{a) « J'ai tout écrasé ! »}
-\begin{lstlisting}
-echo "oups" > plan_adressage.txt
-cat plan_adressage.txt
-git status
-git restore plan_adressage.txt
-cat plan_adressage.txt
-\end{lstlisting}
-Qu'est devenu le fichier ? L'aurait-on récupéré s'il n'avait jamais été indexé ni validé ? \reponse{2}
-
-\textbf{b) Indexation par erreur}
-\begin{lstlisting}
-echo "idées en vrac" > brouillon.txt
-git add brouillon.txt
-git status
-\end{lstlisting}
-Retirez \cmd{brouillon.txt} de l'index sans le supprimer du disque. Quelle commande utilisez-vous ?
-Supprimez ensuite le brouillon avec \cmd{rm brouillon.txt}. \reponse{1}
-
-\textbf{c) Faute dans le message}\\
-Créez \cmd{inventaire.csv} :
-\begin{lstlisting}
-nom;type;ip;salle
-SW-B204;switch;192.168.10.2;B204
-PC-B204-01;poste;192.168.20.11;B204
-\end{lstlisting}
-Indexez-le et validez-le avec le message \cmd{"Ajout inventiare"} (faute volontaire). Notez l'identifiant du commit,
-puis corrigez :
-\begin{lstlisting}
-git commit --amend -m "Ajout de l'inventaire du matériel"
-git log --oneline
-\end{lstlisting}
-L'identifiant du commit a-t-il changé ? Pourquoi ? \reponse{2}
-
-\textbf{d) Annuler un commit}\\
-Dans le plan d'adressage, remplacez la passerelle du VLAN 10 par \cmd{192.168.10.1}, puis validez avec le message
-« Changement de la passerelle du VLAN 10 ». C'était une erreur : annulez ce commit.
-\begin{lstlisting}
-git revert --no-edit HEAD
-git log --oneline
-cat plan_adressage.txt
-\end{lstlisting}
-\cmd{HEAD} désigne ici le dernier commit de la branche courante. Combien de commits l'opération a-t-elle ajoutés ?
-Pourquoi préférer \cmd{revert} à \cmd{--amend} quand le commit a déjà été partagé ? \reponse{3}
-
-\begin{correction}
-\begin{enumerate}[label=\alph*)]
-  \item Le fichier retrouve le contenu de l'index, qui est ici celui du dernier commit. S'il n'avait jamais été indexé ni
-  validé, Git n'en aurait aucune copie : le contenu serait perdu. Morale : validez souvent.
-  \item \cmd{git restore --staged brouillon.txt}. Le fichier redevient « non suivi ».
-  \item Oui. \cmd{--amend} ne modifie pas le commit : il le remplace par un nouveau, dont l'empreinte est différente
-  (elle dépend du contenu, du message, de la date\ldots). Ceux qui auraient récupéré l'ancien commit auraient un
-  historique incohérent avec le vôtre.
-  \item Un seul, intitulé \cmd{Revert "Changement de la passerelle du VLAN 10"}, qui s'ajoute au commit erroné.
-  La passerelle revient à \cmd{.254}. \cmd{revert} n'efface rien : l'historique partagé reste cohérent pour toute
-  l'équipe, et l'on garde la trace de l'erreur et de sa correction.
-\end{enumerate}
-\end{correction}
-\end{exercice}
-
 % =====================================================================
-\section{\texorpdfstring{Ignorer des fichiers : \texttt{.gitignore}}{Ignorer des fichiers : .gitignore}}
+\section{Travailler à deux sur le même dépôt}
 
-Certains fichiers ne doivent pas être versionnés : fichiers temporaires, journaux, captures réseau, fichiers générés
-et surtout \textbf{secrets} (mots de passe, clés, jetons). Le fichier \cmd{.gitignore}, placé à la racine du dépôt,
-contient un motif par ligne. Git ignore alors les fichiers \emph{non suivis} qui correspondent à ces motifs.
-
-\begin{attention}[Cybersécurité]
-Tout ce qui a été validé reste dans l'historique, même si le fichier est supprimé ensuite. Un secret poussé sur un dépôt
-distant doit être considéré comme \textbf{compromis}. Des robots parcourent en permanence les dépôts publics à la
-recherche de mots de passe et de clés.
-\end{attention}
-
-\begin{exercice}{Mettre en place un .gitignore}
-Créez quelques fichiers indésirables :
-\begin{lstlisting}
-echo "mdp_admin=Azerty123" > secrets.txt
-touch capture.pcap debug.log
-git status
-\end{lstlisting}
-Créez ensuite le fichier \cmd{.gitignore} avec \cmd{nano} :
-\begin{lstlisting}
-# Fichiers sensibles
-secrets.txt
-# Captures réseau et journaux
-*.pcap
-*.log
-\end{lstlisting}
+\begin{exercice}{En binôme (élèves A et B)}
 \begin{enumerate}
-  \item Relancez \cmd{git status}. Quels fichiers apparaissent encore ? \reponse{1}
-  \item Faut-il versionner le fichier \cmd{.gitignore} lui-même ? Justifiez, puis faites-le. \reponse{2}
-  \item Un camarade a validé par erreur \cmd{config_routeur.txt}, qui contient le mot de passe \emph{enable} du routeur,
-  puis a ajouté ce fichier au \cmd{.gitignore}. Le problème est-il réglé ? Que faut-il faire ? \reponse{3}
-\end{enumerate}
-\begin{correction}
-\begin{enumerate}
-  \item Seul \cmd{.gitignore} apparaît, comme fichier non suivi.
-  \item Oui : il fait partie du projet et doit être partagé avec l'équipe pour que tout le monde ignore les mêmes
-  fichiers. \cmd{git add .gitignore} puis \cmd{git commit -m "Ajout du .gitignore"}.
-  \item Non. \cmd{.gitignore} n'agit que sur les fichiers \emph{non suivis} : un fichier déjà validé reste suivi, et
-  l'ancienne version reste dans l'historique (et sur le dépôt distant s'il a été poussé). Il faut :
-  \begin{itemize}
-    \item arrêter le suivi sans supprimer le fichier local : \cmd{git rm --cached config_routeur.txt}, puis valider ;
-    \item \textbf{surtout}, considérer le mot de passe comme compromis et le changer sur le routeur.
-  \end{itemize}
-  Purger l'historique est possible (outil \cmd{git filter-repo}), mais c'est délicat et inutile si le dépôt a déjà été
-  cloné ou publié.
-\end{enumerate}
-\end{correction}
-\end{exercice}
-
-% =====================================================================
-\section{Travailler avec des branches}
-
-Une \textbf{branche} est une ligne de développement parallèle. On l'utilise pour développer une fonctionnalité ou
-tester une idée sans perturber la version stable, conservée sur \cmd{main}. Une fois le travail terminé, on
-\textbf{fusionne} (\emph{merge}) la branche dans \cmd{main}.
-
-\begin{center}
-\begin{tikzpicture}[x=1.7cm, y=1.2cm]
-  \node[commit=green!15] (c1) at (0,0) {C1};
-  \node[commit=green!15] (c2) at (1,0) {C2};
-  \node[commit=green!15] (c3) at (2,0) {C3};
-  \node[commit=blue!15]  (c4) at (3,1) {C4};
-  \node[commit=blue!15]  (c5) at (4,1) {C5};
-  \node[commit=green!15] (c6) at (3.5,0) {C6};
-  \node[commit=green!35, double] (m) at (5,0) {M};
-  \draw[thick] (c1) -- (c2) -- (c3) -- (c6) -- (m);
-  \draw[thick] (c3) -- (c4) -- (c5) -- (m);
-  \node[right=2mm of m, font=\small\ttfamily, text=green!40!black] {main};
-  \node[above=1mm of c5, font=\small\ttfamily, text=blue!60!black] {fonctionnalite};
-  \draw[->, gray] (0,-0.8) -- node[below, font=\small]{temps} (5,-0.8);
-\end{tikzpicture}
-\end{center}
-{\small Ici, la branche \cmd{fonctionnalite} part de C3. Pendant qu'on y ajoute C4 et C5, \cmd{main} continue avec C6.
-Le commit de fusion M réunit les deux lignes.}
-
-\begin{tabularx}{\linewidth}{@{}>{\raggedright\arraybackslash}p{4.8cm} X@{}}
-\toprule
-\cmd{git branch}          & liste les branches (la branche courante est marquée d'un \cmd{*}) \\
-\cmd{git switch -c nom}   & crée la branche \cmd{nom} et bascule dessus \\
-\cmd{git switch nom}      & bascule sur une branche existante \\
-\cmd{git merge nom}       & fusionne la branche \cmd{nom} \emph{dans la branche courante} \\
-\cmd{git branch -d nom}   & supprime une branche déjà fusionnée \\
-\bottomrule
-\end{tabularx}
-
-\begin{info}[switch ou checkout ?]
-Dans beaucoup de tutoriels, vous verrez \cmd{git checkout -b nom}, qui équivaut à \cmd{git switch -c nom}.
-\cmd{git switch} (Git $\geq$ 2.23) est plus simple et moins ambigu. Validez ou annulez vos modifications en cours
-avant de changer de branche.
-\end{info}
-
-\begin{exercice}{Une branche pour le VLAN invités}
+  \item \textbf{(A)} Sur la page GitHub de votre dépôt : \gh{Settings} $\rightarrow$ \gh{Collaborators}
+  $\rightarrow$ \gh{Add people}, et ajoutez le compte de B. \textbf{(B)} Acceptez l'invitation reçue par e-mail
+  (ou sur \url{https://github.com/notifications}).
+  \item \textbf{(B)} Clonez le dépôt de A dans un nouveau dossier :
 \begin{lstlisting}
-git switch -c vlan-invites
-git branch
-\end{lstlisting}
-\begin{enumerate}
-  \item Quelle branche est marquée d'une étoile ? \reponse{1}
-  \item Ajoutez cette ligne au plan d'adressage, puis validez avec le message « Ajout du VLAN 40 (invités) » :
-\begin{lstlisting}
-VLAN 40  INVITES  192.168.40.0/24  passerelle 192.168.40.254
-\end{lstlisting}
-  \item Revenez sur \cmd{main} (\cmd{git switch main}) et affichez le plan d'adressage. Où est passé le VLAN 40 ?
-  \reponse{2}
-  \item Fusionnez : \cmd{git merge vlan-invites}. Quel mot important apparaît dans la sortie ? Que signifie-t-il ?
-  \reponse{2}
-  \item Visualisez le résultat avec \cmd{git log --oneline --graph --all}, puis supprimez la branche avec
-  \cmd{git branch -d vlan-invites}.
-\end{enumerate}
-\begin{correction}
-\begin{enumerate}
-  \item[1.] \cmd{* vlan-invites}.
-  \item[3.] Le VLAN 40 n'existe que dans le commit de la branche \cmd{vlan-invites}. Quand on change de branche, Git
-  remet le répertoire de travail dans l'état du dernier commit de la branche choisie. Rien n'est perdu.
-  \item[4.] \emph{Fast-forward} (avance rapide) : \cmd{main} n'avait pas évolué depuis la création de la branche. Git a
-  simplement avancé le pointeur \cmd{main} jusqu'au commit de \cmd{vlan-invites}, sans créer de commit de fusion.
-\end{enumerate}
-\end{correction}
-\end{exercice}
-
-\begin{exercice}{Provoquer et résoudre un conflit}
-\begin{enumerate}
-  \item Créez une branche \cmd{passerelle-v2}. Sur cette branche, remplacez la passerelle du VLAN 20 par
-  \cmd{192.168.20.1} et validez (« Passerelle VLAN 20 en .1 »).
-  \item Revenez sur \cmd{main}. Modifiez \emph{la même ligne} : passerelle \cmd{192.168.20.253}, puis validez
-  (« Passerelle VLAN 20 en .253 »).
-  \item Affichez \cmd{git log --oneline --graph --all} et dessinez l'allure de l'historique. \reponse{3}
-  \item Tentez la fusion avec \cmd{git merge passerelle-v2}. Que répond Git ? Que dit \cmd{git status} ? \reponse{2}
-  \item Ouvrez \cmd{plan_adressage.txt}. Git y a inséré des \textbf{marqueurs de conflit} :
-\begin{lstlisting}
-<<<<<<< HEAD
-VLAN 20  ELEVES   192.168.20.0/24  passerelle 192.168.20.253
-=======
-VLAN 20  ELEVES   192.168.20.0/24  passerelle 192.168.20.1
->>>>>>> passerelle-v2
-\end{lstlisting}
-  Entre \cmd{<<<<<<< HEAD} et \cmd{=======} se trouve la version de la branche courante (\cmd{main}). Entre
-  \cmd{=======} et \cmd{>>>>>>>} se trouve celle de la branche fusionnée.
-  \item \textbf{Résolvez le conflit.} La convention de l'établissement place la passerelle sur la dernière adresse
-  utilisable du réseau. Éditez le fichier pour ne garder qu'\emph{une} ligne VLAN 20, avec la bonne passerelle, et
-  supprimez les trois lignes de marqueurs. Puis :
-\begin{lstlisting}
-git add plan_adressage.txt
-git commit -m "Fusion de passerelle-v2 : passerelle VLAN 20 fixée à .254"
-git log --oneline --graph --all
-\end{lstlisting}
-  \item Pourquoi Git n'a-t-il pas pu fusionner seul ? Dans quel cas y serait-il arrivé ? \reponse{3}
-\end{enumerate}
-\begin{info}[Faire marche arrière]
-Pendant une fusion en conflit, \cmd{git merge --abort} annule la fusion et revient à l'état d'avant.
-\end{info}
-\begin{correction}
-\begin{enumerate}
-  \item[3.] Deux lignes qui divergent à partir du commit commun : un commit sur \cmd{passerelle-v2}, un commit sur \cmd{main}.
-  \item[4.] \cmd{CONFLICT (content): Merge conflict in plan_adressage.txt} puis
-  \cmd{Automatic merge failed; fix conflicts and then commit the result.}
-  \cmd{git status} signale \emph{You have unmerged paths} et \emph{both modified:} \cmd{plan_adressage.txt}.
-  \item[6.] Aucune des deux versions n'était correcte : la bonne ligne est
-  \cmd{VLAN 20  ELEVES   192.168.20.0/24  passerelle 192.168.20.254}. La résolution d'un conflit est une décision
-  humaine, ici une décision technique d'administration réseau.
-  \item[7.] Les deux branches ont modifié \emph{la même ligne} de façon différente depuis leur ancêtre commun. Git ne
-  peut pas savoir quelle version est la bonne. Si les modifications avaient porté sur des parties éloignées du fichier,
-  ou sur des fichiers différents, Git aurait fusionné automatiquement.
-\end{enumerate}
-\end{correction}
-\end{exercice}
-
-% =====================================================================
-\section{Collaborer avec un dépôt distant}
-
-Pour travailler à plusieurs, on partage un \textbf{dépôt distant} hébergé sur un serveur (GitHub, GitLab, ou un
-serveur Gitea de l'établissement). Chacun travaille dans son dépôt local et se synchronise avec le dépôt distant.
-
-\begin{center}
-\begin{tikzpicture}
-  \node[zone=green!12] (r) at (0,0)    {Dépôt distant \texttt{origin}\\(GitHub, GitLab\ldots)};
-  \node[zone=blue!8]   (a) at (-4.5,-3) {Dépôt local\\étudiant A};
-  \node[zone=blue!8]   (b) at (4.5,-3)  {Dépôt local\\étudiant B};
-  \draw[->, thick] (a.north) to[bend left=20]  node[left]{\texttt{push}}  (r.west);
-  \draw[->, thick] (r.south west) to[bend left=10] node[right, pos=0.6]{\texttt{pull}} (a.north east);
-  \draw[->, thick] (b.north) to[bend right=20] node[right]{\texttt{push}} (r.east);
-  \draw[->, thick] (r.south east) to[bend right=10] node[left, pos=0.6]{\texttt{clone} / \texttt{pull}} (b.north west);
-\end{tikzpicture}
-\end{center}
-
-\begin{tabularx}{\linewidth}{@{}>{\raggedright\arraybackslash}p{5.2cm} X@{}}
-\toprule
-\cmd{git remote add origin <url>} & associe un dépôt distant, nommé \cmd{origin}, au dépôt local \\
-\cmd{git remote -v}               & liste les dépôts distants configurés \\
-\cmd{git push -u origin main}     & envoie la branche \cmd{main}. L'option \cmd{-u} mémorise le lien : ensuite, \cmd{git push} suffit. \\
-\cmd{git pull}                    & récupère les nouveaux commits du distant et les fusionne (\cmd{git fetch} + \cmd{git merge}) \\
-\cmd{git clone <url>}             & copie complète d'un dépôt distant, historique compris, avec \cmd{origin} déjà configuré \\
-\bottomrule
-\end{tabularx}
-
-\begin{info}[Authentification]
-Depuis 2021, GitHub refuse le mot de passe du compte pour les opérations Git en HTTPS. Sous Windows,
-\emph{Git Credential Manager} (installé avec Git for Windows) ouvre une fenêtre de connexion dans le navigateur.
-Sous Linux, utilisez un \emph{jeton d'accès personnel} (\emph{personal access token}) à la place du mot de passe,
-ou une clé SSH.
-\end{info}
-
-\begin{exercice}{Travailler en binôme (étudiants A et B)}
-\begin{enumerate}
-  \item \textbf{(A)} Sur GitHub ou GitLab, créez un dépôt \textbf{vide} nommé \cmd{tp-git} : sans README, sans
-  \cmd{.gitignore} et sans licence. Sinon, l'historique distant ne correspondrait pas au vôtre.
-  \item \textbf{(A)} Reliez votre dépôt local au dépôt distant et envoyez-le (remplacez l'URL par la vôtre) :
-\begin{lstlisting}
-git remote add origin https://github.com/compte-A/tp-git.git
-git push -u origin main
-\end{lstlisting}
-  Rafraîchissez la page web du dépôt. Que voyez-vous ? \reponse{1}
-  \item \textbf{(A)} Ajoutez B comme collaborateur (sur GitHub : \emph{Settings} $\rightarrow$ \emph{Collaborators}).
-  \textbf{(B)} Acceptez l'invitation.
-  \item \textbf{(B)} Clonez le dépôt de A (dans un dossier qui n'est pas déjà un dépôt Git) :
-\begin{lstlisting}
-git clone https://github.com/compte-A/tp-git.git tp-git-A
+cd ~
+git clone https://github.com/COMPTE-DE-A/tp-git.git tp-git-A
 cd tp-git-A
-git log --oneline
 \end{lstlisting}
-  L'historique est-il complet ? \reponse{1}
-  \item \textbf{(B)} Ajoutez la ligne \cmd{SW-B204-2;switch;192.168.10.3;B204} à \cmd{inventaire.csv}, validez, puis
-  tapez \cmd{git push}.
-  \item \textbf{(A)} Tapez \cmd{git pull} et vérifiez le contenu de l'inventaire.
-  \item \textbf{Travail simultané.} Sans vous synchroniser, A modifie le titre du README et B ajoute une ligne à
-  l'inventaire. Chacun valide. B pousse en premier, puis A tente \cmd{git push}. Que se passe-t-il ?
-  Comment A doit-il procéder ? \reponse{3}
+  \item \textbf{(B)} Ajoutez la ligne \cmd{SW-B204-2;switch;192.168.10.3} à la fin de \cmd{inventaire.csv}, puis
+  faites la routine jusqu'au \cmd{git push}.
+  \item \textbf{(A)} Faites \cmd{git pull} et vérifiez que la ligne de B est bien dans votre inventaire. \reponse{1}
+  \item \textbf{En même temps} : A ajoute une ligne au README, B ajoute un VLAN au plan d'adressage. Chacun fait
+  \cmd{add} et \cmd{commit}. B fait \cmd{git push} en premier, \emph{puis} A. Que se passe-t-il pour A ? \reponse{2}
+  \item \textbf{(A)} Faites \cmd{git pull}. Si \cmd{nano} s'ouvre avec un message de fusion, enregistrez
+  (\textbf{Ctrl+O}, \textbf{Entrée}) et quittez (\textbf{Ctrl+X}). Puis \cmd{git push}. Tout le monde fait ensuite
+  \cmd{git pull} : les deux dépôts sont-ils identiques ? \reponse{1}
 \end{enumerate}
 \begin{correction}
 \begin{enumerate}
-  \item[2.] Les fichiers du projet et l'historique complet des commits.
-  \item[4.] Oui : \cmd{git clone} copie tout l'historique, pas seulement la dernière version.
-  \item[7.] Le push de A est refusé : \cmd{! [rejected] main -> main (fetch first)}. Le distant contient des commits
-  que A n'a pas. A doit faire \cmd{git pull}. Les modifications portant sur des fichiers différents, la fusion est
-  automatique. \cmd{nano} s'ouvre alors pour le message du commit de fusion : il suffit d'enregistrer et de quitter.
-  En cas de conflit, on le résout comme dans l'exercice 10. A peut ensuite faire \cmd{git push}.
-  \\ Prolongement possible : faire modifier à A et B \emph{la même ligne} pour provoquer un conflit à distance.
+  \item[4.] La ligne de B apparaît chez A.
+  \item[5.] Le \cmd{git push} de A est refusé : \cmd{! [rejected] main -> main (fetch first)}. GitHub contient un
+  commit (celui de B) que A n'a pas encore. Rien n'est perdu.
+  \item[6.] \cmd{git pull} récupère le commit de B et le fusionne avec celui de A (fichiers différents : fusion
+  automatique). Après le \cmd{git push} de A et le \cmd{git pull} de B, les deux dépôts sont identiques.
 \end{enumerate}
+Si les deux élèves modifient \emph{la même ligne}, Git signale un \emph{CONFLICT} : hors programme de ce TP,
+l'enseignant aide à le résoudre (garder la bonne ligne, supprimer les marqueurs \cmd{<<<<<<<}, \cmd{=======},
+\cmd{>>>>>>>}, puis \cmd{add}, \cmd{commit}, \cmd{push}).
 \end{correction}
 \end{exercice}
 
-\begin{info}[La règle d'or du travail en équipe]
-\cmd{git pull} avant de commencer à travailler ; des commits petits et fréquents ; \cmd{git push} dès qu'un travail
-cohérent est validé.
+\begin{info}[« push rejected » : pas de panique]
+Si \cmd{git push} est refusé, c'est que GitHub a des nouveautés que vous n'avez pas. Faites \cmd{git pull}, puis
+\cmd{git push}. Si Git parle de \emph{CONFLICT}, appelez l'enseignant.
 \end{info}
 
 % =====================================================================
-\section{Défi de synthèse (en autonomie, 30 min)}
+\section{Défi final (en autonomie)}
 
-Vous rédigez la procédure de sauvegarde de la configuration des switchs de la salle. Essayez de réaliser ce défi
-\emph{sans relire les pages précédentes}, en vous aidant uniquement de l'aide-mémoire.
-
+Sans regarder les pages précédentes, en vous aidant seulement de l'aide-mémoire :
 \begin{enumerate}
-  \item Créez un nouveau dépôt \cmd{defi-git}, \textbf{en dehors} du dossier \cmd{tp-git}.
-  \item Créez \cmd{procedure.md} avec un titre et trois étapes numérotées. Validez.
-  \item Ajoutez un \cmd{.gitignore} qui ignore les fichiers \cmd{*.tmp}. Vérifiez-le en créant \cmd{test.tmp}. Validez.
-  \item Créez une branche \cmd{ajout-tftp}. Ajoutez une étape « Copier la configuration vers le serveur TFTP
-  (\cmd{copy running-config tftp:}) ». Validez, fusionnez dans \cmd{main}, puis supprimez la branche.
-  \item Sur \cmd{main}, ajoutez une étape erronée et validez-la. Annulez-la ensuite \emph{sans réécrire l'historique}.
-  \item Provoquez puis résolvez un conflit entre \cmd{main} et une branche de votre choix.
-  \item \textbf{Rendu} : la sortie de \cmd{git log --oneline --graph --all} et le contenu final de \cmd{procedure.md}.
+  \item Créez sur GitHub un nouveau dépôt privé \cmd{mes-tp-ciel}, avec un README, et clonez-le.
+  \item Ajoutez un fichier \cmd{compte_rendu.md} contenant le titre de ce TP et trois choses que vous avez apprises.
+  Commit et push.
+  \item Complétez le README avec votre nom et votre classe. Commit et push.
+  \item Modifiez \cmd{compte_rendu.md} directement sur GitHub, puis récupérez la modification sur le PC.
+  \item Montrez à l'enseignant la liste des commits sur GitHub et un \cmd{git status} « propre ».
 \end{enumerate}
+Ce dépôt vous servira pour ranger vos prochains TP.
 
 \begin{correction}
-Exemple de solution (les messages peuvent varier) :
-\begin{lstlisting}
-cd ~ && mkdir defi-git && cd defi-git && git init
-nano procedure.md                  # titre + 3 étapes
-git add procedure.md && git commit -m "Ajout de la procédure de sauvegarde"
-echo "*.tmp" > .gitignore && touch test.tmp && git status   # test.tmp absent
-git add .gitignore && git commit -m "Ajout du .gitignore"
-git switch -c ajout-tftp
-nano procedure.md                  # étape TFTP
-git commit -am "Ajout de l'étape de copie TFTP"
-git switch main && git merge ajout-tftp && git branch -d ajout-tftp
-nano procedure.md                  # étape erronée
-git commit -am "Ajout d'une étape erronée"
-git revert --no-edit HEAD
-# conflit : même ligne modifiée sur une branche et sur main, puis git merge,
-# édition du fichier, git add, git commit
-git log --oneline --graph --all
-\end{lstlisting}
-\cmd{git commit -am} indexe et valide en une fois les fichiers \emph{déjà suivis}. On l'accepte si l'élève la découvre,
-sans l'exiger. Points de vigilance à l'évaluation : au moins 7 commits, un commit \emph{Revert}, un commit de fusion
-issu d'un conflit, aucun marqueur \cmd{<<<<<<<} restant, \cmd{test.tmp} absent de l'historique.
+Attendus : au moins 3 commits (\emph{Initial commit}, \cmd{compte_rendu.md}, README) plus le commit fait sur GitHub,
+visible sur le PC après \cmd{git pull}. \cmd{git status} doit afficher \emph{up to date with 'origin/main'} et
+\emph{nothing to commit, working tree clean}. Vérifier aussi la qualité des messages.
 \end{correction}
 
 \subsection*{Auto-évaluation}
@@ -853,96 +450,50 @@ issu d'un conflit, aucun marqueur \cmd{<<<<<<<} restant, \cmd{test.tmp} absent d
 \toprule
 \textbf{Je sais\ldots} & \textbf{Pas encore} & \textbf{En partie} & \textbf{Oui} \\
 \midrule
-expliquer la différence entre Git et GitHub & $\square$ & $\square$ & $\square$ \\
-expliquer le rôle du répertoire de travail, de l'index et du dépôt & $\square$ & $\square$ & $\square$ \\
-créer un dépôt et enregistrer des commits avec des messages clairs & $\square$ & $\square$ & $\square$ \\
-lire l'historique et les différences (\cmd{log}, \cmd{diff}, \cmd{show}) & $\square$ & $\square$ & $\square$ \\
-annuler une modification ou un commit (\cmd{restore}, \cmd{revert}) & $\square$ & $\square$ & $\square$ \\
-utiliser \cmd{.gitignore} et ne jamais versionner un secret & $\square$ & $\square$ & $\square$ \\
-créer une branche, la fusionner et résoudre un conflit & $\square$ & $\square$ & $\square$ \\
-synchroniser mon travail avec un dépôt distant (\cmd{clone}, \cmd{pull}, \cmd{push}) & $\square$ & $\square$ & $\square$ \\
+expliquer la différence entre Git et GitHub, entre commit et push & $\square$ & $\square$ & $\square$ \\
+créer un dépôt sur GitHub et le cloner sur un PC & $\square$ & $\square$ & $\square$ \\
+lire \cmd{git status} et savoir quelle commande taper ensuite & $\square$ & $\square$ & $\square$ \\
+enregistrer mon travail : \cmd{add}, \cmd{commit} avec un message clair & $\square$ & $\square$ & $\square$ \\
+envoyer et récupérer mon travail : \cmd{push}, \cmd{pull} & $\square$ & $\square$ & $\square$ \\
+réagir à un \emph{push rejected} & $\square$ & $\square$ & $\square$ \\
 \bottomrule
 \end{tabularx}
 
 % =====================================================================
-\section{Testez-vous}
+\vspace{5mm}
+\needspace{20\baselineskip}
+\section*{Aide-mémoire}
+\addcontentsline{toc}{section}{Aide-mémoire}
 
-\begin{enumerate}
-  \item Quelle commande fait passer une modification du répertoire de travail à l'index ?\\
-  $\square$ \cmd{git commit} \quad $\square$ \cmd{git add} \quad $\square$ \cmd{git push} \quad $\square$ \cmd{git init}
-  \item Que signifie \emph{nothing to commit, working tree clean} ? \reponse{1}
-  \item Quelle est la différence entre \cmd{git revert} et \cmd{git commit --amend} ? \reponse{2}
-  \item Que fait \cmd{git pull}, en deux étapes ? \reponse{1}
-  \item Vous avez poussé un fichier contenant un mot de passe. Suffit-il de le supprimer et de valider ? \reponse{2}
-\end{enumerate}
-\begin{correction}
-\begin{enumerate}
-  \item \cmd{git add}.
-  \item Aucune modification en attente : le répertoire de travail et l'index sont identiques au dernier commit.
-  \item \cmd{revert} ajoute un nouveau commit qui annule un commit existant, sans réécrire l'historique (utilisable
-  après un push). \cmd{--amend} remplace le dernier commit et réécrit l'historique (à réserver aux commits non partagés).
-  \item Il récupère les commits du dépôt distant (\cmd{git fetch}) puis les fusionne dans la branche courante (\cmd{git merge}).
-  \item Non : le mot de passe reste dans l'historique, localement et sur le dépôt distant. Il faut le considérer comme
-  compromis et le changer.
-\end{enumerate}
-\end{correction}
+\begin{tcolorbox}[colback=ciel!5, colframe=ciel, title=La routine de chaque séance, fonttitle=\bfseries]
+\begin{tabularx}{\linewidth}{@{}l >{\raggedright\arraybackslash}p{5.5cm} X@{}}
+\textbf{1.} & \cmd{git pull}                 & récupérer les nouveautés (début de séance) \\
+\textbf{2.} & \emph{travailler}              & créer, modifier des fichiers \\
+\textbf{3.} & \cmd{git status}               & voir ce qui a changé \\
+\textbf{4.} & \cmd{git add fichier}          & sélectionner (ou \cmd{git add .} pour tout) \\
+\textbf{5.} & \cmd{git commit -m "message"}  & enregistrer sur le PC \\
+\textbf{6.} & \cmd{git push}                 & envoyer sur GitHub (au plus tard en fin de séance) \\
+\end{tabularx}
+\end{tcolorbox}
 
-% =====================================================================
-\newpage
-\section*{Aide-mémoire Git}
-\addcontentsline{toc}{section}{Aide-mémoire Git}
-
-\renewcommand{\arraystretch}{1.12}
-\begin{tabularx}{\linewidth}{@{}>{\raggedright\arraybackslash}p{7.6cm} X@{}}
+\begin{tabularx}{\linewidth}{@{}>{\raggedright\arraybackslash}p{7.3cm} X@{}}
 \toprule
-\multicolumn{2}{@{}l}{\textbf{\color{ciel}Configuration (une seule fois par poste)}} \\
-\cmd{git config --global user.name "Nom"} & définir son nom \\
-\cmd{git config --global user.email "mail"} & définir son adresse e-mail \\
-\cmd{git config --global --list} & afficher la configuration \\
+\multicolumn{2}{@{}l}{\textbf{\color{ciel}Une seule fois}} \\
+\cmd{git config --global user.name "Nom"} & votre nom (dans chaque commit) \\
+\cmd{git config --global user.email "mail"} & votre e-mail (celui du compte GitHub) \\
+\cmd{git clone <url>} & copier un dépôt GitHub sur le PC \\
 \midrule
-\multicolumn{2}{@{}l}{\textbf{\color{ciel}Créer ou récupérer un dépôt}} \\
-\cmd{git init} & transformer le dossier courant en dépôt \\
-\cmd{git clone <url>} & copier un dépôt distant \\
-\midrule
-\multicolumn{2}{@{}l}{\textbf{\color{ciel}Enregistrer}} \\
-\cmd{git status} & état des fichiers (\emph{à utiliser sans modération}) \\
-\cmd{git add fichier} & indexer une modification \\
-\cmd{git commit -m "message"} & valider le contenu de l'index \\
-\midrule
-\multicolumn{2}{@{}l}{\textbf{\color{ciel}Consulter}} \\
-\cmd{git log --oneline --graph --all} & historique compact avec les branches \\
-\cmd{git show <id>} & détail d'un commit \\
-\cmd{git diff} / \cmd{git diff --staged} & modifications non indexées / indexées \\
-\midrule
-\multicolumn{2}{@{}l}{\textbf{\color{ciel}Annuler}} \\
-\cmd{git restore fichier} & abandonner les modifications non indexées \\
-\cmd{git restore --staged fichier} & retirer un fichier de l'index \\
-\cmd{git commit --amend} & corriger le dernier commit (s'il n'est pas partagé) \\
-\cmd{git revert <id>} & annuler un commit par un nouveau commit \\
-\midrule
-\multicolumn{2}{@{}l}{\textbf{\color{ciel}Branches}} \\
-\cmd{git branch} & lister les branches \\
-\cmd{git switch -c nom} & créer une branche et basculer dessus \\
-\cmd{git switch nom} & changer de branche \\
-\cmd{git merge nom} & fusionner \cmd{nom} dans la branche courante \\
-\cmd{git merge --abort} & abandonner une fusion en conflit \\
-\cmd{git branch -d nom} & supprimer une branche fusionnée \\
-\midrule
-\multicolumn{2}{@{}l}{\textbf{\color{ciel}Dépôt distant}} \\
-\cmd{git remote add origin <url>} & associer un dépôt distant \\
-\cmd{git push -u origin main} & premier envoi de \cmd{main} \\
-\cmd{git push} / \cmd{git pull} & envoyer / récupérer et fusionner \\
+\multicolumn{2}{@{}l}{\textbf{\color{ciel}Pour s'y retrouver}} \\
+\cmd{git status} & où en suis-je ? \\
+\cmd{git log --oneline} & liste des commits \\
 \bottomrule
 \end{tabularx}
-\renewcommand{\arraystretch}{1}
 
 \subsection*{Pour aller plus loin}
 \begin{itemize}
   \item S. Chacon et B. Straub, \emph{Pro Git}, 2\textsuperscript{e} éd., Apress, 2014. Libre, traduit en français :
-  \url{https://git-scm.com/book/fr/v2}. Les chapitres 1 à 3 couvrent ce TP.
-  \item \emph{Learn Git Branching}, exercices interactifs sur les branches, disponible en français :
-  \url{https://learngitbranching.js.org}.
-  \item Documentation de référence des commandes : \url{https://git-scm.com/docs}.
+  \url{https://git-scm.com/book/fr/v2} (chapitres 1 et 2).
+  \item Documentation GitHub en français : \url{https://docs.github.com/fr/get-started}.
 \end{itemize}
 
 \end{document}
