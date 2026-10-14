@@ -1,0 +1,657 @@
+% Cours 1 — Adressage IPv4 sans classe (CIDR) et découpage en sous-réseaux (BTS CIEL 2e année)
+% Compilation :
+%   cours (exercices vierges) : pdflatex Cours1_CIDR_Sous-reseaux.tex
+%   corrigé (enseignant)      : pdflatex -jobname=Cours1_CIDR_Sous-reseaux_Corrige "\def\modecorrige{1}\input{Cours1_CIDR_Sous-reseaux.tex}"
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage[french]{babel}
+\usepackage[a4paper,margin=1.8cm,bottom=2.2cm]{geometry}
+\usepackage[table]{xcolor}
+\usepackage{booktabs,tabularx,array,multirow}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{amssymb,amsmath}
+\usepackage[most]{tcolorbox}
+\usepackage{tikz}
+\usetikzlibrary{positioning,decorations.pathreplacing}
+\usepackage{hyperref}
+\hypersetup{hidelinks}
+
+\providecommand{\modecorrige}{0}
+\newif\ifcorrige
+\ifnum\modecorrige=1 \corrigetrue \else \corrigefalse \fi
+
+\definecolor{ipred}{HTML}{C0392B}
+\definecolor{cdcbar}{HTML}{A67C3D}
+\definecolor{cdcbg}{HTML}{F4F1EA}
+\definecolor{qbar}{HTML}{4A6B5D}
+\definecolor{qbg}{HTML}{EDF1EF}
+\definecolor{corr}{HTML}{1F5FA8}
+\definecolor{corrbg}{HTML}{E8F0FA}
+\definecolor{grisfoot}{HTML}{828282}
+\definecolor{bitres}{HTML}{1F5FA8}
+\definecolor{bitsr}{HTML}{A67C3D}
+\definecolor{bithote}{HTML}{4A6B5D}
+
+\newcommand{\ip}[1]{\textcolor{ipred}{\texttt{#1}}}
+\newcommand{\sol}[1]{\ifcorrige\textcolor{corr}{#1}\fi}
+\newcommand{\hautligne}{\rule[-2mm]{0pt}{6.5mm}}
+\newcommand{\R}[1]{\textcolor{bitres}{\textbf{#1}}}   % bits réseau
+\newcommand{\SR}[1]{\textcolor{bitsr}{\textbf{#1}}}   % bits empruntés (sous-réseau)
+\newcommand{\Hb}[1]{\textcolor{bithote}{#1}}          % bits hôte
+
+% Encadrés du cours
+\newtcolorbox{defi}[1][]{enhanced,breakable,colback=qbg,colframe=qbar,boxrule=0pt,
+  leftrule=3pt,arc=0pt,outer arc=0pt,left=6pt,right=6pt,top=4pt,bottom=4pt,
+  title={#1},coltitle=qbar,fonttitle=\bfseries,attach title to upper={\ :\ }}
+\newtcolorbox{methode}[1][]{enhanced,breakable,colback=cdcbg,colframe=cdcbar,boxrule=0pt,
+  leftrule=3pt,arc=0pt,outer arc=0pt,left=6pt,right=6pt,top=4pt,bottom=4pt,
+  title={#1},coltitle=cdcbar,fonttitle=\bfseries,detach title,before upper={\tcbtitle\par\smallskip}}
+\newtcolorbox{piege}{enhanced,breakable,colback=red!4,colframe=ipred,boxrule=0pt,
+  leftrule=3pt,arc=0pt,outer arc=0pt,left=6pt,right=6pt,top=4pt,bottom=4pt}
+\newtcolorbox{exam}{enhanced,breakable,colback=corrbg,colframe=corr,boxrule=0pt,
+  leftrule=3pt,arc=0pt,outer arc=0pt,left=6pt,right=6pt,top=4pt,bottom=4pt}
+
+% Exercices
+\newcounter{exo}
+\newtcolorbox{quest}{enhanced,breakable,colback=qbg,colframe=qbar,boxrule=0pt,
+  leftrule=3pt,arc=0pt,outer arc=0pt,left=6pt,right=6pt,top=4pt,bottom=4pt}
+\newcommand{\exo}[2]{% titre, énoncé
+  \stepcounter{exo}\begin{quest}\textbf{Exercice \theexo\ — #1.} #2\end{quest}}
+
+% Zone de réponse : vierge dans le cours, remplie dans le corrigé
+\newcommand{\zone}[2]{%
+  \ifcorrige
+    \begin{tcolorbox}[colback=corrbg,colframe=corr,boxrule=0.6pt,arc=1pt,left=5pt,right=5pt,
+      fontupper=\small\color{corr}]#2\end{tcolorbox}%
+  \else
+    \begin{tcolorbox}[colback=white,colframe=black!45,boxrule=0.5pt,arc=1pt,height=#1]\end{tcolorbox}%
+  \fi}
+
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0pt}
+\fancyfoot[L]{\small\itshape\color{grisfoot}Cours 1 — Adressage CIDR et découpage en sous-réseaux\ifcorrige\ — CORRIGÉ\fi}
+\fancyfoot[R]{\small\color{grisfoot}\thepage}
+
+\setlist{itemsep=1pt,topsep=3pt}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{4pt}
+\renewcommand{\arraystretch}{1.3}
+
+\begin{document}
+
+\begin{center}
+  {\LARGE\bfseries Cours 1 — Adressage IPv4 sans classe (CIDR)\par}
+  \vspace{2pt}
+  {\large\bfseries et découpage en sous-réseaux\par}
+  \vspace{6pt}
+  BTS CIEL 2e année — Option A Informatique et Réseaux — Réseaux
+  \ifcorrige\par\vspace{4pt}{\large\bfseries\color{corr}CORRIGÉ DES EXERCICES — document enseignant}\fi
+\end{center}
+
+\begin{methode}[Objectifs du cours]
+À la fin de ce cours, vous savez :
+\begin{itemize}
+  \item lire une adresse IPv4 en notation CIDR (\ip{a.b.c.d/n}) et retrouver son masque ;
+  \item calculer l'adresse réseau, l'adresse de diffusion, la plage utilisable et le nombre d'hôtes d'un réseau ;
+  \item découper un réseau \textbf{selon un nombre de sous-réseaux} ou \textbf{selon un nombre d'hôtes} ;
+  \item construire un plan d'adressage à masques variables (VLSM) et l'affecter à des VLAN ;
+  \item vérifier qu'une configuration (adresse, masque, passerelle) est cohérente.
+\end{itemize}
+\textbf{Prérequis (CIEL 1)} : structure d'une adresse IPv4, classes et masques par défaut, rôle de la passerelle par défaut.
+\end{methode}
+
+\begin{exam}
+\textbf{Pourquoi ce cours en premier ?} Le découpage en sous-réseaux est la \textbf{seule notion présente dans
+tous les sujets d'E4} (option A) de 2022 à 2026 :
+\begin{center}\small
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{Session} & \textbf{Système étudié} & \textbf{Type de découpage demandé} \\
+\midrule
+2022 (SN) & Éclairage eLIGHT & \ip{192.168.121.0/24} en 8 sous-réseaux égaux \\
+2023 (SN) & Panneaux lumineux SMS & \ip{172.16.88.0/24} en 64 sous-réseaux \\
+2024 (SN) & Qualité de l'eau LoRaWAN & \ip{172.20.0.0/16} en 10 sous-réseaux \\
+2025 (CIEL) & Parking Seven-Park & \ip{192.168.7.0/24} en 8 sous-réseaux pour 5 VLAN \\
+2026 (CIEL) & Cashless festival & \ip{192.168.69.0/24}, au plus 30 machines par sous-réseau \\
+\bottomrule
+\end{tabular}
+\end{center}
+Il est aussi le prérequis des cours suivants : VLAN, routage inter-VLAN, DMZ, pare-feu, NAT, VPN.
+\end{exam}
+
+%=====================================================================
+\section{Rappels : l'adresse IPv4 et le masque}
+%=====================================================================
+
+Une adresse IPv4 est un nombre de \textbf{32 bits}, écrit en \textbf{notation décimale pointée} :
+4 octets de 8 bits, chacun compris entre 0 et 255.
+
+\begin{center}
+\begin{tabular}{@{}l*{8}{>{\centering\arraybackslash}p{1cm}}@{}}
+\toprule
+Rang du bit & 7 & 6 & 5 & 4 & 3 & 2 & 1 & 0 \\
+Poids $2^k$ & 128 & 64 & 32 & 16 & 8 & 4 & 2 & 1 \\
+\midrule
+$192$ & 1 & 1 & 0 & 0 & 0 & 0 & 0 & 0 \\
+$168$ & 1 & 0 & 1 & 0 & 1 & 0 & 0 & 0 \\
+$100$ & 0 & 1 & 1 & 0 & 0 & 1 & 0 & 0 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Une adresse se compose de deux parties :
+\begin{itemize}
+  \item la \textbf{partie réseau} (bits de poids fort) : identique pour toutes les machines d'un même réseau ;
+  \item la \textbf{partie hôte} (bits de poids faible) : identifie la machine dans ce réseau.
+\end{itemize}
+
+\begin{defi}[Masque de sous-réseau]
+Nombre de 32 bits formé d'une suite de \textbf{1} (positions de la partie réseau) suivie d'une suite de
+\textbf{0} (positions de la partie hôte). Les 1 sont toujours contigus et à gauche.
+\end{defi}
+
+\begin{defi}[Adresse réseau]
+Elle s'obtient par un \textbf{ET logique bit à bit} entre l'adresse IP et le masque :
+les bits réseau sont conservés, les bits hôte sont mis à 0.
+\end{defi}
+
+\textbf{Exemple} — \ip{192.168.1.100} avec le masque \ip{255.255.255.224} (27 bits à 1) :
+
+\begin{center}\small
+\begin{tabular}{@{}ll@{}}
+Adresse & \texttt{\R{11000000.10101000.00000001.011}\Hb{00100}} \quad (192.168.1.100) \\
+Masque  & \texttt{\R{11111111.11111111.11111111.111}\Hb{00000}} \quad (255.255.255.224) \\
+\midrule
+ET logique & \texttt{\R{11000000.10101000.00000001.011}\Hb{00000}} \quad $\Rightarrow$ \ip{192.168.1.96}
+\end{tabular}
+\end{center}
+
+%=====================================================================
+\section{Des classes au CIDR}
+%=====================================================================
+
+En CIEL 1, vous avez utilisé les \textbf{classes} : le premier octet imposait le masque
+(A : \ip{/8}, B : \ip{/16}, C : \ip{/24}). Ce système gaspillait énormément d'adresses : une entreprise
+de 300 postes devait demander une classe B (65\,534 adresses) faute de mieux.
+
+Depuis 1993, l'Internet utilise le \textbf{CIDR} (\emph{Classless Inter-Domain Routing}, RFC 1519 puis RFC 4632) :
+le masque peut avoir \textbf{n'importe quelle longueur} et n'est plus déduit du premier octet.
+Il doit donc \textbf{toujours} être indiqué avec l'adresse.
+
+\begin{defi}[Notation CIDR]
+\ip{a.b.c.d/n} où $n$ (le \textbf{préfixe}) est le nombre de bits à 1 du masque.
+Le nombre de bits hôte vaut $h = 32 - n$.
+\end{defi}
+
+\begin{methode}[Formules à connaître par cœur]
+\begin{itemize}
+  \item Nombre d'adresses d'un réseau : $2^{h}$.
+  \item Nombre d'\textbf{hôtes adressables} : $2^{h} - 2$ (on retire l'adresse réseau, tous les bits hôte à 0,
+        et l'adresse de diffusion, tous les bits hôte à 1).
+  \item Valeur d'un octet de masque incomplet : les seules valeurs possibles sont
+        \texttt{128, 192, 224, 240, 248, 252, 254, 255}.
+\end{itemize}
+\end{methode}
+
+\subsection*{Table des masques}
+
+\begin{center}\small
+\begin{tabular}{@{}ccrc|ccrc@{}}
+\toprule
+\textbf{Préfixe} & \textbf{Masque} & \textbf{Hôtes} & \textbf{Pas} &
+\textbf{Préfixe} & \textbf{Masque} & \textbf{Hôtes} & \textbf{Pas} \\
+\midrule
+/8  & 255.0.0.0       & 16\,777\,214 & 1 (1\textsuperscript{er} oct.) &
+/24 & 255.255.255.0   & 254 & 1 (3\textsuperscript{e} oct.) \\
+/16 & 255.255.0.0     & 65\,534 & 1 (2\textsuperscript{e} oct.) &
+/25 & 255.255.255.128 & 126 & 128 \\
+/17 & 255.255.128.0   & 32\,766 & 128 (3\textsuperscript{e} oct.) &
+/26 & 255.255.255.192 & 62  & 64 \\
+/18 & 255.255.192.0   & 16\,382 & 64 &
+/27 & 255.255.255.224 & 30  & 32 \\
+/19 & 255.255.224.0   & 8\,190  & 32 &
+/28 & 255.255.255.240 & 14  & 16 \\
+/20 & 255.255.240.0   & 4\,094  & 16 &
+/29 & 255.255.255.248 & 6   & 8 \\
+/21 & 255.255.248.0   & 2\,046  & 8 &
+/30 & 255.255.255.252 & 2   & 4 \\
+/22 & 255.255.252.0   & 1\,022  & 4 &
+/31 & 255.255.255.254 & (2)$^{*}$ & 2 \\
+/23 & 255.255.254.0   & 510     & 2 &
+/32 & 255.255.255.255 & 1 hôte & — \\
+\bottomrule
+\end{tabular}
+
+\smallskip
+{\footnotesize $^{*}$ \ip{/31} : cas particulier réservé aux liaisons point à point (RFC 3021), sans adresse réseau ni diffusion.
+Dans les sujets de BTS, une liaison point à point est en \ip{/30}.}
+\end{center}
+
+\subsection*{Adresses particulières à connaître}
+
+\begin{center}\small
+\begin{tabularx}{\linewidth}{@{}lX@{}}
+\toprule
+\textbf{Plage} & \textbf{Usage} \\
+\midrule
+\ip{10.0.0.0/8}, \ip{172.16.0.0/12}, \ip{192.168.0.0/16} & Adresses \textbf{privées} (RFC 1918), non routées sur Internet : il faut un NAT pour sortir. Attention : \ip{172.16.0.0/12} va de \ip{172.16.0.0} à \ip{172.31.255.255}. \\
+\ip{127.0.0.0/8} & Boucle locale (\emph{loopback}), \ip{127.0.0.1} = la machine elle-même. \\
+\ip{169.254.0.0/16} & Adresse auto-attribuée (APIPA) quand le serveur DHCP ne répond pas. \\
+\ip{0.0.0.0/0} & «~Tous les réseaux~» : c'est la \textbf{route par défaut} dans une table de routage. \\
+\ip{255.255.255.255} & Diffusion limitée au réseau local (utilisée par exemple par DHCP Discover). \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+%=====================================================================
+\section{Caractériser un réseau à partir d'une adresse et d'un préfixe}
+%=====================================================================
+
+Pour un réseau donné, l'examen demande presque toujours les cinq mêmes informations :
+
+\begin{center}\small
+\begin{tabularx}{\linewidth}{@{}lX@{}}
+\toprule
+\textbf{Adresse réseau} & tous les bits hôte à 0 — identifie le réseau, non attribuable à une machine \\
+\textbf{Première adresse utilisable} & adresse réseau $+1$ \\
+\textbf{Dernière adresse utilisable} & adresse de diffusion $-1$ \\
+\textbf{Adresse de diffusion} (\emph{broadcast}) & tous les bits hôte à 1 — non attribuable à une machine \\
+\textbf{Nombre d'hôtes} & $2^{h}-2$ \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\begin{methode}[Méthode rapide : le «~pas~» (ou taille de bloc)]
+\begin{enumerate}
+  \item Repérer l'\textbf{octet significatif} : celui où le masque n'est ni 255 ni 0.
+  \item Calculer le \textbf{pas} : $\text{pas} = 256 - \text{valeur du masque dans cet octet}$.
+  \item Les réseaux commencent aux \textbf{multiples du pas} dans cet octet : 0, pas, 2$\times$pas…
+        L'adresse réseau est le plus grand multiple du pas inférieur ou égal à l'octet de l'adresse.
+  \item Les octets à droite de l'octet significatif valent 0 dans l'adresse réseau.
+  \item Adresse de diffusion = (début du bloc suivant) $- 1$.
+\end{enumerate}
+\end{methode}
+
+\textbf{Exemple 1} — \ip{192.168.1.100/27}
+\begin{itemize}
+  \item Masque \ip{255.255.255.224}, octet significatif = 4\textsuperscript{e}, pas $= 256 - 224 = 32$.
+  \item Multiples de 32 : 0, 32, 64, \textbf{96}, 128… $\Rightarrow$ 100 est dans le bloc qui commence à 96.
+  \item Réseau \ip{192.168.1.96}, diffusion \ip{192.168.1.127}, plage \ip{192.168.1.97} – \ip{192.168.1.126},
+        $2^{5}-2 = 30$ hôtes.
+\end{itemize}
+
+\textbf{Exemple 2} — \ip{172.16.45.200/20} (le masque «~coupe~» le 3\textsuperscript{e} octet)
+\begin{itemize}
+  \item Masque \ip{255.255.240.0}, octet significatif = 3\textsuperscript{e}, pas $= 256 - 240 = 16$.
+  \item Multiples de 16 : 0, 16, \textbf{32}, 48… $\Rightarrow$ 45 est dans le bloc qui commence à 32.
+  \item Réseau \ip{172.16.32.0}, bloc suivant \ip{172.16.48.0}, donc diffusion \ip{172.16.47.255}.
+  \item Plage utilisable : \ip{172.16.32.1} – \ip{172.16.47.254}, soit $2^{12}-2 = 4\,094$ hôtes.
+\end{itemize}
+
+\begin{piege}
+\textbf{Pièges fréquents.}
+\begin{itemize}
+  \item Quand le masque coupe le 3\textsuperscript{e} octet, la diffusion se termine par \texttt{.255} sur le 4\textsuperscript{e} octet
+        (\ip{172.16.47.255}), et la dernière adresse utilisable par \texttt{.254}.
+  \item Une adresse qui se termine par \texttt{.0} ou \texttt{.255} n'est pas forcément interdite :
+        \ip{172.16.33.0/20} est une adresse d'hôte valide !
+  \item Oublier le $-2$ dans le nombre d'hôtes.
+\end{itemize}
+\end{piege}
+
+%=====================================================================
+\section{Découper un réseau : le principe}
+%=====================================================================
+
+Découper (\emph{subnetting}), c'est \textbf{emprunter des bits à la partie hôte} pour créer une partie
+«~sous-réseau~». Le préfixe s'allonge, chaque sous-réseau contient moins d'adresses.
+
+\begin{center}
+\begin{tikzpicture}[x=0.42cm,y=1cm,font=\small]
+  \fill[bitres!20]  (0,0) rectangle (24,1);
+  \fill[bitsr!30]   (24,0) rectangle (27,1);
+  \fill[bithote!20] (27,0) rectangle (32,1);
+  \foreach \i in {0,...,32} \draw[black!25] (\i,0) -- (\i,1);
+  \draw[thick] (0,0) rectangle (32,1);
+  \foreach \i in {8,16,24} \draw[very thick] (\i,0) -- (\i,1);
+  \draw[very thick,bitsr] (27,-0.1) -- (27,1.1);
+  \node at (12,0.5) {\textcolor{bitres}{\textbf{réseau d'origine : 24 bits}}};
+  \node at (25.5,0.5) {\textcolor{bitsr}{\textbf{$n$}}};
+  \node at (29.5,0.5) {\textcolor{bithote}{\textbf{$h$}}};
+  \draw[decorate,decoration={brace,amplitude=5pt,mirror}] (0,-0.15) -- (26.8,-0.15)
+     node[midway,below=6pt] {nouveau préfixe : $24 + n$};
+  \draw[decorate,decoration={brace,amplitude=5pt}] (24,1.15) -- (27,1.15)
+     node[midway,above=6pt] {bits empruntés : $2^{n}$ sous-réseaux};
+  \draw[decorate,decoration={brace,amplitude=5pt,mirror}] (27.2,-0.15) -- (32,-0.15)
+     node[midway,below=6pt] {bits hôte : $2^{h}-2$ hôtes};
+\end{tikzpicture}
+\end{center}
+
+Il y a toujours un compromis : \textbf{chaque bit emprunté double le nombre de sous-réseaux
+et divise (environ) par deux le nombre d'hôtes par sous-réseau}. La question d'examen fixe l'une des deux
+contraintes ; vous en déduisez l'autre.
+
+\begin{piege}
+\textbf{Sous-réseau zéro et dernier sous-réseau.} D'anciennes règles (RFC 950, 1985) interdisaient d'utiliser
+le premier sous-réseau (bits empruntés à 0) et le dernier (bits empruntés à 1). Cette restriction est abandonnée
+depuis longtemps (RFC 1878) et les équipements actuels utilisent tous les sous-réseaux (\texttt{ip subnet-zero}
+est actif par défaut chez Cisco). \textbf{Dans les sujets de BTS, on compte $2^{n}$ sous-réseaux.}
+\end{piege}
+
+%=====================================================================
+\section{Découpage selon le nombre de sous-réseaux}
+%=====================================================================
+
+\begin{methode}[Méthode — on veut au moins $N$ sous-réseaux]
+\begin{enumerate}
+  \item Chercher le plus petit $n$ tel que $2^{n} \geq N$ : c'est le nombre de bits empruntés.
+  \item Nouveau préfixe $= $ préfixe d'origine $+ n$ ; en déduire le masque et le pas.
+  \item Hôtes par sous-réseau : $2^{h} - 2$ avec $h = 32 - \text{nouveau préfixe}$.
+  \item Lister les sous-réseaux de pas en pas, à partir de l'adresse d'origine.
+\end{enumerate}
+\end{methode}
+
+\textbf{Exemple} — découper \ip{192.168.100.0/24} en 4 sous-réseaux :
+$2^{2} = 4 \geq 4$, donc $n = 2$, préfixe \ip{/26}, masque \ip{255.255.255.192}, pas 64, 62 hôtes par sous-réseau.
+
+\begin{center}\small
+\begin{tabular}{@{}cllll@{}}
+\toprule
+\textbf{N°} & \textbf{Adresse réseau} & \textbf{1\textsuperscript{re} utilisable} & \textbf{Dernière utilisable} & \textbf{Diffusion} \\
+\midrule
+0 & 192.168.100.0/26   & 192.168.100.1   & 192.168.100.62  & 192.168.100.63 \\
+1 & 192.168.100.64/26  & 192.168.100.65  & 192.168.100.126 & 192.168.100.127 \\
+2 & 192.168.100.128/26 & 192.168.100.129 & 192.168.100.190 & 192.168.100.191 \\
+3 & 192.168.100.192/26 & 192.168.100.193 & 192.168.100.254 & 192.168.100.255 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Vérification en binaire du 4\textsuperscript{e} octet : les deux bits empruntés (\SR{xx}) prennent les valeurs
+\SR{00}, \SR{01}, \SR{10}, \SR{11} :
+\texttt{\SR{00}\Hb{000000}} = 0, \texttt{\SR{01}\Hb{000000}} = 64, \texttt{\SR{10}\Hb{000000}} = 128,
+\texttt{\SR{11}\Hb{000000}} = 192.
+
+\begin{piege}
+Si $N$ n'est pas une puissance de 2 (par exemple 10 sous-réseaux), on prend la puissance de 2 supérieure
+($2^{4} = 16$) : il reste 6 sous-réseaux libres, disponibles pour une extension future.
+\end{piege}
+
+%=====================================================================
+\section{Découpage selon le nombre d'hôtes}
+%=====================================================================
+
+\begin{methode}[Méthode — chaque sous-réseau doit accueillir au moins $H$ machines]
+\begin{enumerate}
+  \item Compter \textbf{toutes} les adresses nécessaires : postes, serveurs, imprimantes, téléphones IP,
+        \textbf{passerelle} (interface du routeur), éventuelle interface d'administration du switch…
+  \item Chercher le plus petit $h$ tel que $2^{h} - 2 \geq H$ : c'est le nombre de bits hôte.
+  \item Préfixe $= 32 - h$ ; en déduire le masque, le pas et le nombre de sous-réseaux disponibles.
+\end{enumerate}
+\end{methode}
+
+\textbf{Exemple} — dans \ip{172.16.0.0/16}, créer des sous-réseaux de 500 machines :
+$2^{9} - 2 = 510 \geq 500$ (alors que $2^{8} - 2 = 254$ ne suffit pas), donc $h = 9$, préfixe $32 - 9 = $ \ip{/23},
+masque \ip{255.255.254.0}. L'octet significatif est le 3\textsuperscript{e}, pas $= 256 - 254 = 2$.
+On obtient $2^{23-16} = 128$ sous-réseaux :
+\ip{172.16.0.0/23} (\ip{172.16.0.1} à \ip{172.16.1.254}, diffusion \ip{172.16.1.255}),
+\ip{172.16.2.0/23}, \ip{172.16.4.0/23}, etc.
+
+\begin{piege}
+L'énoncé dit «~au maximum 30 machines~» ou «~au moins 30 machines~» ? Lisez bien. Avec exactement 30 machines,
+\ip{/27} suffit ($2^{5}-2 = 30$) ; avec 31, il faut passer en \ip{/26}.
+Et n'oubliez pas que la passerelle consomme une adresse du sous-réseau.
+\end{piege}
+
+%=====================================================================
+\section{Plan d'adressage à masques variables (VLSM)}
+%=====================================================================
+
+Dans un vrai réseau, les besoins diffèrent : un VLAN Production de 100 postes, un VLAN Administration de 10
+équipements, une liaison routeur–pare-feu de 2 adresses. Donner \ip{/25} à tout le monde gaspillerait les
+adresses. Le \textbf{VLSM} (\emph{Variable Length Subnet Mask}) attribue à chaque sous-réseau le masque adapté
+à son besoin.
+
+\begin{methode}[Méthode VLSM]
+\begin{enumerate}
+  \item Lister les besoins et les \textbf{trier du plus grand au plus petit}.
+  \item Pour chaque besoin, calculer le préfixe nécessaire (méthode du nombre d'hôtes).
+  \item Attribuer les blocs \textbf{dans l'ordre}, en commençant au début de la plage : chaque bloc commence
+        juste après la diffusion du précédent.
+  \item Vérifier que chaque adresse de début est bien un multiple du pas de son propre masque
+        (c'est garanti si l'on a trié par taille décroissante).
+\end{enumerate}
+\end{methode}
+
+\textbf{Exemple} — \ip{10.1.1.0/24} pour : Bureaux 60 hôtes, Atelier 25 hôtes, Administration 12 hôtes,
+une liaison point à point.
+
+\begin{center}\small
+\begin{tabular}{@{}llcll@{}}
+\toprule
+\textbf{Besoin} & \textbf{Hôtes} & \textbf{Préfixe} & \textbf{Réseau} & \textbf{Plage utilisable / diffusion} \\
+\midrule
+Bureaux        & 60 & /26 (62)  & 10.1.1.0/26   & .1 – .62 \quad / .63 \\
+Atelier        & 25 & /27 (30)  & 10.1.1.64/27  & .65 – .94 \quad / .95 \\
+Administration & 12 & /28 (14)  & 10.1.1.96/28  & .97 – .110 \quad / .111 \\
+Point à point  & 2  & /30 (2)   & 10.1.1.112/30 & .113 – .114 \quad / .115 \\
+\midrule
+\multicolumn{5}{@{}l}{Libre pour extensions : \ip{10.1.1.116} – \ip{10.1.1.255}} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+%=====================================================================
+\section{Conventions d'attribution et lien avec les VLAN}
+%=====================================================================
+
+\begin{itemize}
+  \item \textbf{Un VLAN = un sous-réseau IP.} Deux machines de VLAN différents ne communiquent qu'en passant par
+        un équipement de niveau 3 (routeur ou switch L3) : ce sera le sujet du cours sur le routage inter-VLAN.
+  \item \textbf{Passerelle par défaut} : une adresse utilisable du sous-réseau, attribuée à l'interface du
+        routeur. Par convention, c'est la \textbf{première} ou la \textbf{dernière} adresse utilisable :
+        \textbf{c'est l'énoncé qui fixe la règle} (en 2025, par exemple, la passerelle prend la dernière).
+  \item \textbf{Serveurs, imprimantes, équipements réseau} : adresses fixes, en général au début ou à la fin
+        de la plage. La \textbf{plage DHCP} se place sur le reste, sans chevaucher les adresses fixes.
+  \item \textbf{DMZ, liaisons point à point, VPN} : petits sous-réseaux dédiés (souvent \ip{/29} ou \ip{/30}).
+\end{itemize}
+
+\begin{methode}[Vérifier une configuration (lien avec CIEL 1)]
+Un poste peut joindre directement une autre machine si et seulement si
+\textbf{(adresse du poste ET masque) = (adresse de la cible ET masque)}.
+Sinon, il envoie le paquet à sa passerelle — qui doit donc \textbf{être dans le même réseau que lui}.
+\end{methode}
+
+%=====================================================================
+\section{Complément : l'adresse IPv4 vue comme un entier}
+%=====================================================================
+
+Une adresse IPv4 étant un nombre de 32 bits, on peut la stocker sous forme d'entier non signé
+(c'est ce que demandait le sujet 2023 pour une base de données) :
+\[
+  \texttt{a.b.c.d} \;\longmapsto\; a \times 256^{3} + b \times 256^{2} + c \times 256 + d
+  \qquad (256^{2} = 65\,536,\ 256^{3} = 16\,777\,216)
+\]
+\textbf{Exemple} : \ip{10.0.1.5} $= 10 \times 16\,777\,216 + 0 + 1 \times 256 + 5 = 167\,772\,421$.
+En Python :
+\begin{center}\texttt{int(ipaddress.IPv4Address("10.0.1.5"))} \quad renvoie \quad \texttt{167772421}\end{center}
+
+\begin{exam}
+\textbf{Vérifier ses calculs avec Python} (module standard \texttt{ipaddress}) :
+\begin{verbatim}
+import ipaddress
+net = ipaddress.ip_network("192.168.100.0/24")
+for sr in net.subnets(new_prefix=26):
+    h = list(sr.hosts())
+    print(sr, sr.netmask, h[0], h[-1], sr.broadcast_address, len(h))
+\end{verbatim}
+Interdit le jour de l'examen, mais très utile pour s'entraîner et corriger ses propres exercices.
+\end{exam}
+
+%=====================================================================
+\section{Fiche réflexe pour l'examen}
+%=====================================================================
+
+\begin{methode}[À chaque question de découpage]
+\begin{enumerate}
+  \item Identifier la contrainte : \textbf{nombre de sous-réseaux} ($2^{n} \geq N$) ou \textbf{nombre d'hôtes} ($2^{h}-2 \geq H$).
+  \item Écrire le nouveau préfixe, puis le masque en décimal pointé.
+  \item Calculer le pas dans l'octet significatif.
+  \item Dresser le tableau : réseau, 1\textsuperscript{re} utilisable, dernière utilisable, diffusion.
+  \item Appliquer les conventions de l'énoncé (passerelle, adresses fixes, DHCP).
+  \item Contrôler : chaque diffusion $+1$ = réseau suivant ; le dernier bloc se termine à la diffusion du réseau d'origine.
+\end{enumerate}
+\end{methode}
+
+\newpage
+%=====================================================================
+\section{Exercices}
+%=====================================================================
+
+Les exercices 6 à 10 reprennent les données d'adressage des sujets d'E4 (2022 à 2026). Les consignes sont
+reformulées pour l'entraînement : elles ne reproduisent pas mot pour mot les questions officielles.
+
+\exo{Conversions}{Convertir en binaire : 172 ; 224 ; 248. Convertir en décimal : \texttt{10110100} ; \texttt{11111100}.}
+\zone{1.6cm}{172 = \texttt{10101100} ; 224 = \texttt{11100000} ; 248 = \texttt{11111000} ;
+\texttt{10110100} = 128 + 32 + 16 + 4 = 180 ; \texttt{11111100} = 252.}
+
+\exo{Préfixe et masque}{Compléter le tableau.}
+\begin{center}\small
+\begin{tabular}{|c|c|c|c|}
+\hline
+\textbf{Préfixe} & \textbf{Masque décimal} & \textbf{Nb de bits hôte} & \textbf{Nb d'hôtes} \\ \hline
+\hautligne /22 & \sol{255.255.252.0} & \sol{10} & \sol{1\,022} \\ \hline
+\hautligne \sol{/27} & 255.255.255.224 & \sol{5} & \sol{30} \\ \hline
+\hautligne \sol{/12} & \sol{255.240.0.0} & 20 & \sol{1\,048\,574} \\ \hline
+\hautligne \sol{/29} & \sol{255.255.255.248} & \sol{3} & 6 \\ \hline
+\end{tabular}
+\end{center}
+
+\exo{Caractériser un réseau}{Pour chaque adresse, donner l'adresse réseau, la première et la dernière adresse
+utilisable, l'adresse de diffusion et le nombre d'hôtes.}
+\begin{center}\small
+\begin{tabular}{|l|l|l|l|l|c|}
+\hline
+\textbf{Adresse} & \textbf{Réseau} & \textbf{1\textsuperscript{re} utilisable} & \textbf{Dernière} & \textbf{Diffusion} & \textbf{Hôtes} \\ \hline
+\hautligne 192.168.10.77/26 & \sol{192.168.10.64} & \sol{192.168.10.65} & \sol{192.168.10.126} & \sol{192.168.10.127} & \sol{62} \\ \hline
+\hautligne 172.16.130.9/23 & \sol{172.16.130.0} & \sol{172.16.130.1} & \sol{172.16.131.254} & \sol{172.16.131.255} & \sol{510} \\ \hline
+\hautligne 10.45.200.13/12 & \sol{10.32.0.0} & \sol{10.32.0.1} & \sol{10.47.255.254} & \sol{10.47.255.255} & \sol{1\,048\,574} \\ \hline
+\end{tabular}
+\end{center}
+\ifcorrige{\small\color{corr} Détail : /26 $\rightarrow$ pas 64 sur le 4\textsuperscript{e} octet, 77 $\in$ [64 ; 127]. /23 $\rightarrow$ pas 2 sur le
+3\textsuperscript{e} octet, 130 est pair donc début de bloc. /12 $\rightarrow$ masque 255.240.0.0, pas 16 sur le 2\textsuperscript{e} octet, 45 $\in$ [32 ; 47].}\fi
+
+\exo{Diagnostic de configuration}{Dans chaque cas, dire si la configuration est correcte. Justifier.
+\begin{enumerate}[label=\alph*)]
+  \item PC1 \ip{192.168.1.130/25} et PC2 \ip{192.168.1.100/25} doivent communiquer sans routeur.
+  \item PC3 \ip{192.168.5.20/28}, passerelle \ip{192.168.5.30}.
+  \item PC4 \ip{192.168.5.20/28}, passerelle \ip{192.168.5.33}.
+  \item Serveur \ip{172.16.32.0/20}.
+\end{enumerate}}
+\zone{3.2cm}{a) Incorrect : PC1 est dans \ip{192.168.1.128/25}, PC2 dans \ip{192.168.1.0/25}, deux réseaux différents : il faut un routeur.\\
+b) Correct : \ip{/28} $\rightarrow$ pas 16, PC3 et la passerelle sont dans \ip{192.168.5.16/28} (plage .17 – .30).\\
+c) Incorrect : .33 appartient à \ip{192.168.5.32/28}, la passerelle n'est pas dans le réseau du poste.\\
+d) Incorrect : \ip{172.16.32.0} est l'adresse du réseau \ip{172.16.32.0/20}, elle ne peut pas être attribuée à une machine.}
+
+\exo{VLSM}{L'entreprise dispose de \ip{192.168.50.0/24}. Établir un plan VLSM pour : Production 100 hôtes,
+Bureaux 50 hôtes, Wi-Fi invités 25 hôtes, Administration 10 hôtes, et deux liaisons point à point entre routeurs.
+Indiquer la plage restée libre.}
+\begin{center}\small
+\begin{tabular}{|l|c|l|l|l|}
+\hline
+\textbf{Sous-réseau} & \textbf{Préfixe} & \textbf{Adresse réseau} & \textbf{Plage utilisable} & \textbf{Diffusion} \\ \hline
+\hautligne Production (100) & \sol{/25} & \sol{192.168.50.0} & \sol{.1 – .126} & \sol{.127} \\ \hline
+\hautligne Bureaux (50) & \sol{/26} & \sol{192.168.50.128} & \sol{.129 – .190} & \sol{.191} \\ \hline
+\hautligne Wi-Fi invités (25) & \sol{/27} & \sol{192.168.50.192} & \sol{.193 – .222} & \sol{.223} \\ \hline
+\hautligne Administration (10) & \sol{/28} & \sol{192.168.50.224} & \sol{.225 – .238} & \sol{.239} \\ \hline
+\hautligne Liaison 1 & \sol{/30} & \sol{192.168.50.240} & \sol{.241 – .242} & \sol{.243} \\ \hline
+\hautligne Liaison 2 & \sol{/30} & \sol{192.168.50.244} & \sol{.245 – .246} & \sol{.247} \\ \hline
+\end{tabular}
+\end{center}
+\zone{0.9cm}{Plage libre : \ip{192.168.50.248} – \ip{192.168.50.255} (un bloc \ip{/29}).}
+
+\exo{D'après E4 2022 — 8 sous-réseaux égaux}{Le réseau \ip{192.168.121.0/24} est découpé en 8 sous-réseaux
+de même taille. Donner le nombre de bits empruntés, le masque (CIDR et décimal), le nombre d'hôtes par
+sous-réseau, puis la liste des 8 adresses réseau avec leur adresse de diffusion.}
+\zone{3.2cm}{$2^{3} = 8$ $\rightarrow$ 3 bits empruntés, \ip{/27}, \ip{255.255.255.224}, $2^{5}-2 = 30$ hôtes, pas 32.\\
+Réseaux / diffusions : .0/.31 ; .32/.63 ; .64/.95 ; .96/.127 ; .128/.159 ; .160/.191 ; .192/.223 ; .224/.255
+(tous préfixés par 192.168.121).}
+
+\exo{D'après E4 2023 — 64 sous-réseaux}{Le réseau \ip{172.16.88.0/24} est découpé en 64 sous-réseaux.
+\begin{enumerate}[label=\alph*)]
+  \item Donner le masque en notation CIDR et décimale, et le nombre d'hôtes par sous-réseau.
+  \item Pour le sous-réseau n°10 (numérotation à partir de 0), donner l'adresse réseau, la première et la
+        dernière adresse utilisable, l'adresse de diffusion.
+  \item Même question pour le dernier sous-réseau.
+  \item Pour quel usage un tel sous-réseau est-il adapté ?
+\end{enumerate}}
+\zone{3.2cm}{a) $2^{6} = 64$ $\rightarrow$ 6 bits empruntés, \ip{/30}, \ip{255.255.255.252}, $2^{2}-2 = 2$ hôtes, pas 4.\\
+b) N°10 : début $10 \times 4 = 40$ $\rightarrow$ réseau \ip{172.16.88.40}, utilisables .41 et .42, diffusion .43.\\
+c) N°63 : $63 \times 4 = 252$ $\rightarrow$ réseau \ip{172.16.88.252}, utilisables .253 et .254, diffusion .255.\\
+d) Une liaison point à point (deux extrémités), par exemple un tunnel VPN entre deux routeurs.}
+
+\exo{D'après E4 2024 — 10 sous-réseaux dans un /16}{Le bloc \ip{172.20.0.0/16} doit être découpé en 10 sous-réseaux.
+\begin{enumerate}[label=\alph*)]
+  \item Combien de bits faut-il emprunter ? Combien de sous-réseaux restent inutilisés ?
+  \item Donner le masque (CIDR et décimal) et le nombre d'hôtes par sous-réseau.
+  \item Donner l'adresse réseau, la plage utilisable et la diffusion des sous-réseaux n°0, n°2 et n°9.
+\end{enumerate}}
+\zone{3.6cm}{a) $2^{3} = 8 < 10 \leq 2^{4} = 16$ $\rightarrow$ 4 bits empruntés ; $16 - 10 = 6$ sous-réseaux inutilisés.\\
+b) \ip{/20}, \ip{255.255.240.0}, $2^{12}-2 = 4\,094$ hôtes ; pas 16 sur le 3\textsuperscript{e} octet.\\
+c) N°0 : \ip{172.20.0.0/20}, \ip{172.20.0.1} – \ip{172.20.15.254}, diffusion \ip{172.20.15.255}.\\
+N°2 : \ip{172.20.32.0/20}, \ip{172.20.32.1} – \ip{172.20.47.254}, diffusion \ip{172.20.47.255}.\\
+N°9 : \ip{172.20.144.0/20}, \ip{172.20.144.1} – \ip{172.20.159.254}, diffusion \ip{172.20.159.255}.}
+
+\exo{D'après E4 2025 — plan d'adressage par VLAN}{Le réseau \ip{192.168.7.0/24} est découpé en 8 sous-réseaux
+égaux. Les 5 premiers sont attribués, dans l'ordre, aux VLAN Production, Téléphonie, Usagers, Sauvegarde et
+Administration. La passerelle de chaque VLAN prend la \textbf{dernière} adresse utilisable.}
+\begin{center}\small
+\begin{tabular}{|l|l|l|l|}
+\hline
+\textbf{VLAN} & \textbf{Adresse réseau / préfixe} & \textbf{Plage utilisable} & \textbf{Passerelle} \\ \hline
+\hautligne Production & \sol{192.168.7.0/27} & \sol{.1 – .30} & \sol{192.168.7.30} \\ \hline
+\hautligne Téléphonie & \sol{192.168.7.32/27} & \sol{.33 – .62} & \sol{192.168.7.62} \\ \hline
+\hautligne Usagers & \sol{192.168.7.64/27} & \sol{.65 – .94} & \sol{192.168.7.94} \\ \hline
+\hautligne Sauvegarde & \sol{192.168.7.96/27} & \sol{.97 – .126} & \sol{192.168.7.126} \\ \hline
+\hautligne Administration & \sol{192.168.7.128/27} & \sol{.129 – .158} & \sol{192.168.7.158} \\ \hline
+\end{tabular}
+\end{center}
+\zone{0.9cm}{Masque commun : \ip{255.255.255.224}. Sous-réseaux libres : \ip{192.168.7.160/27}, \ip{.192/27}, \ip{.224/27}.}
+
+\exo{D'après E4 2026 — découpage par nombre d'hôtes et DHCP}{Le réseau \ip{192.168.69.0/24} est découpé en
+sous-réseaux pouvant accueillir \textbf{au maximum 30 machines}. Les trois premiers sont affectés aux VLAN 10,
+20 et 99. Dans chaque sous-réseau, la passerelle prend la \textbf{première} adresse utilisable, les 4 adresses
+suivantes sont réservées aux équipements fixes, et le reste est distribué par DHCP.
+\begin{enumerate}[label=\alph*)]
+  \item Déterminer le préfixe, le masque et le nombre de sous-réseaux disponibles.
+  \item Pour chaque VLAN, donner l'adresse réseau, la passerelle et la plage DHCP.
+  \item Que faudrait-il changer si un VLAN devait accueillir 40 machines ?
+\end{enumerate}}
+\zone{3.6cm}{a) $2^{5}-2 = 30$ $\rightarrow$ $h = 5$, \ip{/27}, \ip{255.255.255.224}, $2^{27-24} = 8$ sous-réseaux.\\
+b) VLAN 10 : \ip{192.168.69.0/27}, passerelle .1, fixes .2 – .5, DHCP .6 – .30.\\
+VLAN 20 : \ip{192.168.69.32/27}, passerelle .33, fixes .34 – .37, DHCP .38 – .62.\\
+VLAN 99 : \ip{192.168.69.64/27}, passerelle .65, fixes .66 – .69, DHCP .70 – .94.\\
+c) 40 > 30 : ce VLAN passe en \ip{/26} (62 hôtes) ; le plan devient un plan VLSM (placer d'abord le /26).}
+
+\exo{Adresse IPv4 et entier}{Convertir \ip{192.168.1.10} en entier. Quelle adresse correspond à l'entier
+2\,886\,729\,738 ?}
+\zone{1.8cm}{$192 \times 16\,777\,216 + 168 \times 65\,536 + 1 \times 256 + 10 = 3\,232\,235\,786$.\\
+$2\,886\,729\,738 = 172 \times 16\,777\,216 + 16 \times 65\,536 + 0 \times 256 + 10$ $\rightarrow$ \ip{172.16.0.10}.}
+
+%=====================================================================
+\section*{Pour aller plus loin}
+%=====================================================================
+\begin{itemize}
+  \item RFC 4632, \emph{Classless Inter-domain Routing (CIDR)}, IETF, 2006 — le texte de référence sur le CIDR.
+  \item RFC 1918, \emph{Address Allocation for Private Internets}, IETF, 1996 — les plages privées.
+  \item RFC 1878, \emph{Variable Length Subnet Table For IPv4}, IETF, 1995 — tables de masques et usage des sous-réseaux extrêmes.
+  \item Cisco Networking Academy, \emph{CCNA 1 — Introduction aux réseaux} (ITN v7), modules 11 et 12.
+  \item Documentation Python, module \texttt{ipaddress} :\\ \url{https://docs.python.org/fr/3/library/ipaddress.html}.
+\end{itemize}
+
+\end{document}
