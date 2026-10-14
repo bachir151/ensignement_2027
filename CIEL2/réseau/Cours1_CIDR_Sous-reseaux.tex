@@ -12,6 +12,7 @@
 \usepackage[table]{xcolor}
 \usepackage{booktabs,tabularx,array,multirow}
 \usepackage{enumitem}
+\usepackage{needspace}
 \usepackage{fancyhdr}
 \usepackage{amssymb,amsmath}
 \usepackage[most]{tcolorbox}
@@ -60,7 +61,7 @@
 \newtcolorbox{quest}{enhanced,breakable,colback=qbg,colframe=qbar,boxrule=0pt,
   leftrule=3pt,arc=0pt,outer arc=0pt,left=6pt,right=6pt,top=4pt,bottom=4pt}
 \newcommand{\exo}[2]{% titre, énoncé
-  \stepcounter{exo}\begin{quest}\textbf{Exercice \theexo\ — #1.} #2\end{quest}}
+  \Needspace{6cm}\stepcounter{exo}\begin{quest}\textbf{Exercice \theexo\ — #1.} #2\end{quest}}
 
 % Zone de réponse : vierge dans le cours, remplie dans le corrigé
 \newcommand{\zone}[2]{%
@@ -106,8 +107,8 @@
 \end{methode}
 
 \begin{exam}
-\textbf{Pourquoi ce cours en premier ?} Le découpage en sous-réseaux est la \textbf{seule notion présente dans
-tous les sujets d'E4} (option A) de 2022 à 2026 :
+\textbf{Pourquoi ce cours en premier ?} Le découpage en sous-réseaux prépare aux questions
+d'adressage d'E4 (option A). Les exercices de ce cours s'inspirent des sessions suivantes :
 \begin{center}\small
 \begin{tabular}{@{}lll@{}}
 \toprule
@@ -191,10 +192,10 @@ Le nombre de bits hôte vaut $h = 32 - n$.
 \begin{methode}[Formules à connaître par cœur]
 \begin{itemize}
   \item Nombre d'adresses d'un réseau : $2^{h}$.
-  \item Nombre d'\textbf{hôtes adressables} : $2^{h} - 2$ (on retire l'adresse réseau, tous les bits hôte à 0,
+  \item Pour les sous-réseaux ordinaires de ce cours (préfixe jusqu'à \ip{/30}), nombre d'\textbf{adresses utilisables} : $2^{h} - 2$ (on retire l'adresse réseau, tous les bits hôte à 0,
         et l'adresse de diffusion, tous les bits hôte à 1).
   \item Valeur d'un octet de masque incomplet : les seules valeurs possibles sont
-        \texttt{128, 192, 224, 240, 248, 252, 254, 255}.
+        \texttt{128, 192, 224, 240, 248, 252, 254}. Un octet entièrement réseau vaut 255.
 \end{itemize}
 \end{methode}
 
@@ -229,7 +230,8 @@ Le nombre de bits hôte vaut $h = 32 - n$.
 
 \smallskip
 {\footnotesize $^{*}$ \ip{/31} : cas particulier réservé aux liaisons point à point (RFC 3021), sans adresse réseau ni diffusion.
-Dans les sujets de BTS, une liaison point à point est en \ip{/30}.}
+Dans les exercices de ce cours, on retient \ip{/30} pour les liaisons point à point.
+Un préfixe \ip{/32} désigne une adresse unique (par exemple une route d'hôte) : la formule $2^{h}-2$ ne s'y applique pas.}
 \end{center}
 
 \subsection*{Adresses particulières à connaître}
@@ -239,9 +241,9 @@ Dans les sujets de BTS, une liaison point à point est en \ip{/30}.}
 \toprule
 \textbf{Plage} & \textbf{Usage} \\
 \midrule
-\ip{10.0.0.0/8}, \ip{172.16.0.0/12}, \ip{192.168.0.0/16} & Adresses \textbf{privées} (RFC 1918), non routées sur Internet : il faut un NAT pour sortir. Attention : \ip{172.16.0.0/12} va de \ip{172.16.0.0} à \ip{172.31.255.255}. \\
+\ip{10.0.0.0/8}, \ip{172.16.0.0/12}, \ip{192.168.0.0/16} & Adresses \textbf{privées} (RFC 1918), non routées sur l'Internet public : pour un accès IPv4 direct, elles sont généralement traduites en adresses publiques par NAT ; un accès via un proxy est aussi possible. Attention : \ip{172.16.0.0/12} va de \ip{172.16.0.0} à \ip{172.31.255.255}. \\
 \ip{127.0.0.0/8} & Boucle locale (\emph{loopback}), \ip{127.0.0.1} = la machine elle-même. \\
-\ip{169.254.0.0/16} & Adresse auto-attribuée (APIPA) quand le serveur DHCP ne répond pas. \\
+\ip{169.254.0.0/16} & Adresses locales au lien (APIPA), notamment utilisées en l'absence de configuration DHCP. Auto-attribution de \ip{169.254.1.0} à \ip{169.254.254.255} (RFC 3927), sans routage entre réseaux. \\
 \ip{0.0.0.0/0} & «~Tous les réseaux~» : c'est la \textbf{route par défaut} dans une table de routage. \\
 \ip{255.255.255.255} & Diffusion limitée au réseau local (utilisée par exemple par DHCP Discover). \\
 \bottomrule
@@ -252,7 +254,7 @@ Dans les sujets de BTS, une liaison point à point est en \ip{/30}.}
 \section{Caractériser un réseau à partir d'une adresse et d'un préfixe}
 %=====================================================================
 
-Pour un réseau donné, l'examen demande presque toujours les cinq mêmes informations :
+Pour les sous-réseaux ordinaires étudiés ici (jusqu'à \ip{/30}), on détermine les cinq informations suivantes :
 
 \begin{center}\small
 \begin{tabularx}{\linewidth}{@{}lX@{}}
@@ -267,6 +269,11 @@ Pour un réseau donné, l'examen demande presque toujours les cinq mêmes inform
 \end{center}
 
 \begin{methode}[Méthode rapide : le «~pas~» (ou taille de bloc)]
+Pour \ip{/8}, \ip{/16} ou \ip{/24}, il n'y a pas d'octet incomplet : conserver les octets réseau,
+puis mettre les octets hôte à 0 pour le réseau et à 255 pour la diffusion.
+Ainsi \ip{192.168.1.100/24} donne le réseau \ip{192.168.1.0} et la diffusion \ip{192.168.1.255}.
+Le pas 1 de la table indique alors l'incrément dans le dernier octet réseau.
+Pour un masque comportant un octet incomplet :
 \begin{enumerate}
   \item Repérer l'\textbf{octet significatif} : celui où le masque n'est ni 255 ni 0.
   \item Calculer le \textbf{pas} : $\text{pas} = 256 - \text{valeur du masque dans cet octet}$.
@@ -384,6 +391,10 @@ Si $N$ n'est pas une puissance de 2 (par exemple 10 sous-réseaux), on prend la 
 
 %=====================================================================
 \section{Découpage selon le nombre d'hôtes}
+
+Dans les exemples et exercices, les besoins en \textbf{hôtes} désignent le total des adresses utilisables
+nécessaires, \textbf{passerelles et équipements réseau compris}, sauf indication contraire.
+Un \ip{/27} fournit 30 adresses utilisables : une passerelle laisse 29 adresses aux autres équipements.
 %=====================================================================
 
 \begin{methode}[Méthode — chaque sous-réseau doit accueillir au moins $H$ machines]
@@ -403,7 +414,9 @@ On obtient $2^{23-16} = 128$ sous-réseaux :
 \ip{172.16.2.0/23}, \ip{172.16.4.0/23}, etc.
 
 \begin{piege}
-L'énoncé dit «~au maximum 30 machines~» ou «~au moins 30 machines~» ? Lisez bien. Avec exactement 30 machines,
+Distinguer une capacité maximale d'un besoin minimal : un maximum de 30 adresses utilisables
+autorise plusieurs tailles. Pour choisir \ip{/27}, il faut demander le plus grand bloc admissible.
+Pour un besoin de 30 adresses utilisables, passerelle comprise,
 \ip{/27} suffit ($2^{5}-2 = 30$) ; avec 31, il faut passer en \ip{/26}.
 Et n'oubliez pas que la passerelle consomme une adresse du sous-réseau.
 \end{piege}
@@ -424,7 +437,8 @@ adresses. Le \textbf{VLSM} (\emph{Variable Length Subnet Mask}) attribue à chaq
   \item Attribuer les blocs \textbf{dans l'ordre}, en commençant au début de la plage : chaque bloc commence
         juste après la diffusion du précédent.
   \item Vérifier que chaque adresse de début est bien un multiple du pas de son propre masque
-        (c'est garanti si l'on a trié par taille décroissante).
+        (c'est garanti si l'on part du début du réseau d'origine, correctement aligné, et si l'on trie par taille décroissante).
+  \item Vérifier que tous les blocs restent dans le réseau d'origine, sans chevauchement, et identifier les plages libres.
 \end{enumerate}
 \end{methode}
 
@@ -451,7 +465,7 @@ Point à point  & 2  & /30 (2)   & 10.1.1.112/30 & .113 – .114 \quad / .115 \\
 %=====================================================================
 
 \begin{itemize}
-  \item \textbf{Un VLAN = un sous-réseau IP.} Deux machines de VLAN différents ne communiquent qu'en passant par
+  \item \textbf{Dans les architectures étudiées, on associe un sous-réseau IP à chaque VLAN.} Deux machines de VLAN différents ne communiquent qu'en passant par
         un équipement de niveau 3 (routeur ou switch L3) : ce sera le sujet du cours sur le routage inter-VLAN.
   \item \textbf{Passerelle par défaut} : une adresse utilisable du sous-réseau, attribuée à l'interface du
         routeur. Par convention, c'est la \textbf{première} ou la \textbf{dernière} adresse utilisable :
@@ -462,9 +476,11 @@ Point à point  & 2  & /30 (2)   & 10.1.1.112/30 & .113 – .114 \quad / .115 \\
 \end{itemize}
 
 \begin{methode}[Vérifier une configuration (lien avec CIEL 1)]
-Un poste peut joindre directement une autre machine si et seulement si
-\textbf{(adresse du poste ET masque) = (adresse de la cible ET masque)}.
-Sinon, il envoie le paquet à sa passerelle — qui doit donc \textbf{être dans le même réseau que lui}.
+Dans le modèle étudié, un poste considère la destination comme locale lorsque
+\textbf{(adresse du poste ET son masque) = (adresse de la cible ET le masque du poste)}.
+La communication directe suppose aussi une connectivité de couche 2 (même VLAN) et des configurations cohérentes.
+Pour une destination distante, le prochain saut dépend de la table de routage : dans nos exercices,
+il s'agit de la passerelle par défaut, qui doit \textbf{être dans le même sous-réseau que le poste}.
 \end{methode}
 
 %=====================================================================
@@ -490,7 +506,8 @@ for sr in net.subnets(new_prefix=26):
     h = list(sr.hosts())
     print(sr, sr.netmask, h[0], h[-1], sr.broadcast_address, len(h))
 \end{verbatim}
-Interdit le jour de l'examen, mais très utile pour s'entraîner et corriger ses propres exercices.
+Cet outil sert à l'entraînement et à la vérification personnelle. À l'examen, respecter les consignes
+relatives aux outils autorisés et savoir effectuer les calculs à la main.
 \end{exam}
 
 %=====================================================================
@@ -501,14 +518,16 @@ Interdit le jour de l'examen, mais très utile pour s'entraîner et corriger ses
 \begin{enumerate}
   \item Identifier la contrainte : \textbf{nombre de sous-réseaux} ($2^{n} \geq N$) ou \textbf{nombre d'hôtes} ($2^{h}-2 \geq H$).
   \item Écrire le nouveau préfixe, puis le masque en décimal pointé.
-  \item Calculer le pas dans l'octet significatif.
+  \item Calculer le pas dans l'octet incomplet, ou appliquer le cas des préfixes multiples de 8.
   \item Dresser le tableau : réseau, 1\textsuperscript{re} utilisable, dernière utilisable, diffusion.
   \item Appliquer les conventions de l'énoncé (passerelle, adresses fixes, DHCP).
-  \item Contrôler : chaque diffusion $+1$ = réseau suivant ; le dernier bloc se termine à la diffusion du réseau d'origine.
+  \item Pour un découpage complet en blocs égaux : chaque diffusion $+1$ = réseau suivant ;
+        le dernier bloc se termine à la diffusion du réseau d'origine.
+  \item En VLSM : contrôler l'alignement, les capacités, l'absence de chevauchement et l'inclusion
+        dans le réseau d'origine ; identifier les plages libres.
 \end{enumerate}
 \end{methode}
 
-\newpage
 %=====================================================================
 \section{Exercices}
 %=====================================================================
@@ -609,7 +628,9 @@ N°9 : \ip{172.20.144.0/20}, \ip{172.20.144.1} – \ip{172.20.159.254}, diffusio
 
 \exo{D'après E4 2025 — plan d'adressage par VLAN}{Le réseau \ip{192.168.7.0/24} est découpé en 8 sous-réseaux
 égaux. Les 5 premiers sont attribués, dans l'ordre, aux VLAN Production, Téléphonie, Usagers, Sauvegarde et
-Administration. La passerelle de chaque VLAN prend la \textbf{dernière} adresse utilisable.}
+Administration. La passerelle de chaque VLAN prend la \textbf{dernière} adresse utilisable.
+\textit{Adaptation pédagogique : l'ordre et l'affectation des VLAN sont simplifiés ;
+le sujet officiel place l'administration dans \ip{192.168.7.160/27}.}}
 \begin{center}\small
 \begin{tabular}{|l|l|l|l|}
 \hline
@@ -624,19 +645,22 @@ Administration. La passerelle de chaque VLAN prend la \textbf{dernière} adresse
 \zone{0.9cm}{Masque commun : \ip{255.255.255.224}. Sous-réseaux libres : \ip{192.168.7.160/27}, \ip{.192/27}, \ip{.224/27}.}
 
 \exo{D'après E4 2026 — découpage par nombre d'hôtes et DHCP}{Le réseau \ip{192.168.69.0/24} est découpé en
-sous-réseaux pouvant accueillir \textbf{au maximum 30 machines}. Les trois premiers sont affectés aux VLAN 10,
+\textbf{sous-réseaux égaux les plus grands possibles, de capacité au plus 30 adresses utilisables},
+passerelle et équipements fixes compris. Les trois premiers sont affectés aux VLAN 10,
 20 et 99. Dans chaque sous-réseau, la passerelle prend la \textbf{première} adresse utilisable, les 4 adresses
 suivantes sont réservées aux équipements fixes, et le reste est distribué par DHCP.
 \begin{enumerate}[label=\alph*)]
   \item Déterminer le préfixe, le masque et le nombre de sous-réseaux disponibles.
   \item Pour chaque VLAN, donner l'adresse réseau, la passerelle et la plage DHCP.
-  \item Que faudrait-il changer si un VLAN devait accueillir 40 machines ?
+  \item Que faudrait-il changer si un VLAN nécessitait 40 adresses utilisables au total ?
 \end{enumerate}}
-\zone{3.6cm}{a) $2^{5}-2 = 30$ $\rightarrow$ $h = 5$, \ip{/27}, \ip{255.255.255.224}, $2^{27-24} = 8$ sous-réseaux.\\
+\zone{3.6cm}{a) $2^{5}-2 = 30$ et $2^{6}-2 = 62 > 30$ : le plus grand bloc admissible est \ip{/27}. Donc $h = 5$, \ip{/27}, \ip{255.255.255.224}, $2^{27-24} = 8$ sous-réseaux.\\
 b) VLAN 10 : \ip{192.168.69.0/27}, passerelle .1, fixes .2 – .5, DHCP .6 – .30.\\
 VLAN 20 : \ip{192.168.69.32/27}, passerelle .33, fixes .34 – .37, DHCP .38 – .62.\\
 VLAN 99 : \ip{192.168.69.64/27}, passerelle .65, fixes .66 – .69, DHCP .70 – .94.\\
-c) 40 > 30 : ce VLAN passe en \ip{/26} (62 hôtes) ; le plan devient un plan VLSM (placer d'abord le /26).}
+Chaque plage DHCP contient 25 adresses (30 moins la passerelle et les 4 équipements fixes).\\
+c) 40 > 30 : ce VLAN passe en \ip{/26} (62 adresses utilisables). Reconstruire le plan en VLSM
+en plaçant d'abord le /26 ; déplacer les blocs voisins si nécessaire pour éviter les chevauchements.}
 
 \exo{Adresse IPv4 et entier}{Convertir \ip{192.168.1.10} en entier. Quelle adresse correspond à l'entier
 2\,886\,729\,738 ?}
