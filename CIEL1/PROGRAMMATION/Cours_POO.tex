@@ -1,0 +1,492 @@
+% Cours — Programmation orientée objet (BTS CIEL 1re année)
+% Diaporama Beamer, palette et encadrés alignés sur les autres supports du dépôt.
+% Compilation : pdflatex Cours_POO.tex  (deux passes pour la table des matières)
+\documentclass[11pt,aspectratio=169]{beamer}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage[french]{babel}
+\usepackage{xcolor}
+\usepackage{booktabs,tabularx,array}
+\usepackage{amssymb,amsmath}
+\usepackage[most]{tcolorbox}
+\usepackage{listings}
+\usepackage[strings]{underscore}   % permet d'écrire __init__ sans échappement
+\usepackage{tikz}
+\usetikzlibrary{positioning,arrows.meta,shapes.geometric,fit,backgrounds}
+
+% ---------------------------------------------------------------- palette
+% Reprise exacte de la palette des supports article du dépôt
+\definecolor{ipred}{HTML}{C0392B}
+\definecolor{cdcbar}{HTML}{A67C3D}
+\definecolor{cdcbg}{HTML}{F4F1EA}
+\definecolor{qbar}{HTML}{4A6B5D}
+\definecolor{qbg}{HTML}{EDF1EF}
+\definecolor{corr}{HTML}{1F5FA8}
+\definecolor{corrbg}{HTML}{E8F0FA}
+\definecolor{grisfoot}{HTML}{828282}
+\definecolor{codebg}{HTML}{F7F7F4}
+\definecolor{codekw}{HTML}{8E44AD}
+\definecolor{codestr}{HTML}{1F7A4D}
+\definecolor{codecom}{HTML}{8A8A8A}
+
+% ---------------------------------------------------------------- thème
+\usetheme{default}
+\usecolortheme{default}
+\setbeamertemplate{navigation symbols}{}
+\setbeamercolor{structure}{fg=qbar}
+\setbeamercolor{frametitle}{fg=qbar,bg=}
+\setbeamercolor{title}{fg=qbar}
+\setbeamercolor{itemize item}{fg=cdcbar}
+\setbeamercolor{itemize subitem}{fg=qbar}
+\setbeamercolor{section in toc}{fg=black}
+\setbeamerfont{frametitle}{series=\bfseries,size=\large}
+\setbeamertemplate{itemize item}{\color{cdcbar}\raisebox{0.15ex}{\footnotesize$\blacktriangleright$}}
+\setbeamertemplate{itemize subitem}{\color{qbar}\scriptsize$\bullet$}
+
+% Titre de diapo : filet doré sous le titre, comme les encadrés des polycopiés
+\setbeamertemplate{frametitle}{%
+  \vspace{1.5mm}%
+  \hspace{6mm}\begin{minipage}{\dimexpr\paperwidth-14mm\relax}
+    \raggedright\usebeamerfont{frametitle}\color{qbar}\insertframetitle\par
+    \vspace{1mm}{\color{cdcbar}\rule{\linewidth}{1.1pt}}
+  \end{minipage}\par\vspace{0.5mm}}
+
+% Pied de page sobre, identique en esprit au \fancyfoot des polycopiés
+\setbeamertemplate{footline}{%
+  \hbox{\begin{beamercolorbox}[wd=\paperwidth,ht=2.4ex,dp=1.2ex,leftskip=6mm,rightskip=6mm]{}%
+    {\small\itshape\color{grisfoot}Programmation orientée objet}\hfill
+    {\small\color{grisfoot}BTS CIEL 1}\hfill
+    {\small\color{grisfoot}\insertframenumber}%
+  \end{beamercolorbox}}}
+
+\setbeamertemplate{blocks}[default]
+
+% ---------------------------------------------------------------- code Python
+\lstdefinestyle{py}{
+  language=Python,
+  basicstyle=\ttfamily\scriptsize,
+  keywordstyle=\color{codekw}\bfseries,
+  stringstyle=\color{codestr},
+  commentstyle=\color{codecom}\itshape,
+  showstringspaces=false,
+  backgroundcolor=\color{codebg},
+  frame=single,
+  rulecolor=\color{black!25},
+  framesep=5pt,
+  xleftmargin=4pt,
+  xrightmargin=4pt,
+  columns=fullflexible,
+  keepspaces=true,
+  breaklines=true,
+  extendedchars=true,
+  literate={é}{{\'e}}1 {è}{{\`e}}1 {ê}{{\^e}}1 {à}{{\`a}}1 {ç}{{\c c}}1
+           {ù}{{\`u}}1 {û}{{\^u}}1 {î}{{\^\i}}1 {ô}{{\^o}}1 {É}{{\'E}}1 {À}{{\`A}}1 {È}{{\`E}}1 {Ç}{{\c C}}1
+           {«}{{\guillemotleft}}1 {»}{{\guillemotright}}1,
+  morekeywords={self,True,False,None},
+}
+\lstset{style=py}
+\newcommand{\py}[1]{\texttt{#1}}
+
+% ---------------------------------------------------------------- encadrés
+\newtcolorbox{defi}[1][]{enhanced,colback=qbg,colframe=qbar,boxrule=0pt,
+  leftrule=3pt,arc=0pt,outer arc=0pt,left=6pt,right=6pt,top=4pt,bottom=4pt,
+  title={#1},coltitle=qbar,fonttitle=\bfseries,attach title to upper={\ :\ }}
+\newtcolorbox{methode}[1][]{enhanced,colback=cdcbg,colframe=cdcbar,boxrule=0pt,
+  leftrule=3pt,arc=0pt,outer arc=0pt,left=6pt,right=6pt,top=4pt,bottom=4pt,
+  title={#1},coltitle=cdcbar,fonttitle=\bfseries,detach title,
+  before upper={\tcbtitle\par\smallskip}}
+\newtcolorbox{piege}{enhanced,colback=red!4,colframe=ipred,boxrule=0pt,
+  leftrule=3pt,arc=0pt,outer arc=0pt,left=6pt,right=6pt,top=4pt,bottom=4pt}
+\newtcolorbox{exam}{enhanced,colback=corrbg,colframe=corr,boxrule=0pt,
+  leftrule=3pt,arc=0pt,outer arc=0pt,left=6pt,right=6pt,top=4pt,bottom=4pt}
+
+\setbeamersize{text margin left=6mm,text margin right=6mm}
+\setlength{\parskip}{3pt}
+
+% ---------------------------------------------------------------- styles TikZ
+\tikzset{
+  boite/.style={draw=black!55,fill=white,rounded corners=1pt,inner xsep=5pt,inner ysep=3pt,font=\small},
+  classe/.style={boite,fill=qbg,draw=qbar},
+  objet/.style={boite,fill=cdcbg,draw=cdcbar},
+  fleche/.style={-{Stealth[length=3mm]},draw=corr,thick},
+}
+
+\title{Programmation orientée objet}
+\subtitle{Classes, objets et les trois piliers}
+\author{}
+\date{BTS CIEL --- 1\textsuperscript{re} année}
+
+\begin{document}
+
+% ================================================================= titre
+{\setbeamertemplate{footline}{}
+\begin{frame}[plain]
+  \vfill
+  \begin{center}
+    {\color{cdcbar}\rule{0.5\linewidth}{1.2pt}}\par\medskip
+    {\LARGE\bfseries\color{qbar}Programmation orientée objet\par}\medskip
+    {\large Classes, objets et les trois piliers\par}\medskip
+    {\color{cdcbar}\rule{0.5\linewidth}{1.2pt}}\par\bigskip
+    {\color{grisfoot}BTS CIEL --- 1\textsuperscript{re} année \quad|\quad Python}
+  \end{center}
+  \vfill
+\end{frame}}
+
+\begin{frame}{Plan}
+  \tableofcontents
+\end{frame}
+
+% ================================================================= 1. l'idée
+\section{L'idée de la POO}
+
+\begin{frame}{Qu'est-ce que la POO ? L'analogie}
+  \begin{defi}[Idée principale]
+    programmer en décrivant des \textbf{objets}, à l'image de ceux de la vie réelle,
+    plutôt qu'une simple suite d'instructions.
+  \end{defi}
+  \medskip
+  \textbf{L'analogie de la voiture}
+  \begin{itemize}
+    \item on écrit une \emph{recette} (un modèle) qui décrit ce qu'est une « voiture » ;
+    \item à partir de cette recette, on fabrique autant de voitures concrètes qu'on veut.
+  \end{itemize}
+  \medskip
+  \begin{center}
+  \begin{tikzpicture}[node distance=3.2cm]
+    \node[classe] (c) {\begin{tabular}{c}\textbf{Vehicule}\\\hline \py{nombre\_roues}\end{tabular}};
+    \node[objet,right=5.5cm of c] (o) {\begin{tabular}{c}\textbf{moto\_1}\\\hline \py{nombre\_roues = 2}\end{tabular}};
+    \node[above=1mm of c,font=\small\color{grisfoot}] {Classe};
+    \node[above=1mm of o,font=\small\color{grisfoot}] {Objet};
+    \draw[fleche] ([yshift=3mm]c.east) -- node[above,font=\small]{construire} ([yshift=3mm]o.west);
+    \draw[fleche] ([yshift=-3mm]c.east) -- node[below,font=\small]{instancier} ([yshift=-3mm]o.west);
+  \end{tikzpicture}
+  \end{center}
+\end{frame}
+
+% ================================================================= 2. classe
+\section{Classe et objet}
+
+\begin{frame}[fragile]{La « recette » $\rightarrow$ la classe}
+  \begin{defi}[Classe]
+    modèle (ou plan, ou moule) qui définit les \textbf{caractéristiques} et les
+    \textbf{comportements} des objets créés à partir d'elle.
+  \end{defi}
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.46\textwidth}
+      Une classe définit deux choses :
+      \begin{itemize}
+        \item les \textbf{attributs} --- ce qu'un objet \emph{a}\\
+              {\small couleur, marque, vitesse}
+        \item les \textbf{méthodes} --- ce qu'un objet \emph{fait}\\
+              {\small \py{rouler()}, \py{freiner()}}
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.52\textwidth}
+\begin{lstlisting}
+class Voiture:
+    # Le constructeur : initialise les attributs
+    def __init__(self, couleur, marque):
+        self.couleur = couleur
+        self.marque  = marque
+        self.vitesse = 0
+
+    # Une méthode (action)
+    def rouler(self):
+        self.vitesse += 10
+\end{lstlisting}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}[fragile,shrink=5]{L'objet $\rightarrow$ l'instance}
+  \begin{defi}[Objet]
+    exemplaire concret créé à partir d'une classe. On dit que c'est une
+    \textbf{instance} de cette classe.
+  \end{defi}
+  Un objet peut représenter une entité du monde physique ou un concept :
+  un individu, une voiture, un nombre complexe, une matrice\dots
+\begin{lstlisting}
+# Instanciation : on crée deux objets Voiture
+ma_voiture = Voiture("rouge", "Ferrari")
+ta_voiture = Voiture("bleue", "Renault")
+
+ma_voiture.rouler()   # La Ferrari roule à 10 km/h
+ta_voiture.rouler()   # La Renault roule à 10 km/h
+\end{lstlisting}
+  \begin{piege}
+    \textbf{Différence clé :} \py{Voiture} est le \emph{plan} ;
+    \py{ma\_voiture} est une voiture \emph{réelle et unique}.
+    Chaque objet est indépendant, mais suit les règles de sa classe.
+  \end{piege}
+\end{frame}
+
+% ================================================================= 3. constructeur
+\section{Le constructeur}
+
+\begin{frame}[fragile]{Le constructeur \py{\_\_init\_\_}}
+  \begin{defi}[Constructeur]
+    méthode spéciale appelée \textbf{automatiquement} à la création (instanciation)
+    d'un objet. Elle initialise les attributs et prépare l'état initial de l'objet.
+  \end{defi}
+\begin{lstlisting}
+class Voiture:
+    def __init__(self, marque, modele, annee, couleur="blanc"):
+        # Initialisation des attributs d'instance
+        self.marque       = marque
+        self.modele       = modele
+        self.annee        = annee
+        self.couleur      = couleur
+        self.kilometrage  = 0        # Valeur par défaut
+        self.est_demarree = False
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]{Trois façons d'appeler le constructeur}
+\begin{lstlisting}
+# Création avec tous les paramètres
+voiture1 = Voiture("Toyota", "Corolla", 2020, "rouge")
+
+# Création avec paramètre optionnel par défaut
+voiture2 = Voiture("Peugeot", "208", 2019)
+
+# Création avec paramètres nommés
+voiture3 = Voiture(marque="BMW", modele="X3", annee=2022, couleur="noir")
+\end{lstlisting}
+  \begin{methode}[À retenir]
+    \py{self} désigne l'objet en cours de construction : il est passé
+    automatiquement par Python, on ne le fournit jamais à l'appel.
+  \end{methode}
+\end{frame}
+
+% ================================================================= 4. piliers
+\section{Les trois piliers}
+
+\begin{frame}[fragile,shrink=5]{Pilier 1 --- l'encapsulation}
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.5\textwidth}
+      \textbf{Principe}
+      \begin{itemize}
+        \item on « cache » les détails internes ;
+        \item on protège les données en contrôlant leur accès ;
+        \item on évite les modifications accidentelles et on garantit la
+              cohérence des données.
+      \end{itemize}
+      \smallskip
+      \smallskip
+      Attributs et méthodes sont soit \textbf{publics} (accessibles de
+      l'extérieur), soit \textbf{privés} (accessibles seulement via des
+      méthodes dédiées).
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \begin{center}
+      \begin{tikzpicture}[node distance=4mm]
+        \node[classe] (cl) {Classe};
+        \node[objet,below=of cl] (me) {Méthodes};
+        \node[boite,below=of me,fill=qbg,draw=qbar] (va) {Variables};
+        \node[boite,left=16mm of me,fill=cdcbg,draw=cdcbar,font=\small\bfseries] (en) {Encapsulation};
+        \begin{scope}[on background layer]
+          \node[draw=black!45,rounded corners=3pt,inner sep=4mm,fit=(cl)(me)(va)] (cap) {};
+        \end{scope}
+        \draw[fleche] (en.east) -- (cap.west);
+      \end{tikzpicture}
+      \end{center}
+    \end{column}
+  \end{columns}
+  \vspace{-2mm}
+  \begin{defi}[En Python, par convention]
+    \py{solde} public --- \py{\_solde} protégé (usage interne) ---
+    \py{\_\_solde} privé (accès via \py{deposer()}, \py{retirer()}).
+  \end{defi}
+\end{frame}
+
+\begin{frame}[fragile]{Pilier 2 --- l'héritage}
+  \begin{defi}[Héritage]
+    une classe « enfant » hérite des attributs et méthodes d'une classe « parent ».
+  \end{defi}
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.46\textwidth}
+      \textbf{Avantages}
+      \begin{itemize}
+        \item réutilisation du code : rien à réécrire ;
+        \item spécialisation : une \py{Voiture} \emph{est un} \py{Vehicule} ;
+        \item l'enfant peut ajouter ses propres méthodes ou \textbf{surcharger}
+              celles du parent.
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.52\textwidth}
+\begin{lstlisting}
+class Vehicule:                 # Parent
+    def se_deplacer(self):
+        print("Le véhicule se déplace.")
+
+class Voiture(Vehicule):        # Enfant
+    def se_deplacer(self):      # Surcharge
+        print("La voiture roule.")
+\end{lstlisting}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}[shrink=8]{Héritage : une hiérarchie de classes}
+  \begin{center}
+  \begin{tikzpicture}[
+      every node/.style={boite,font=\footnotesize},
+      level 1/.style={sibling distance=52mm},
+      level 2/.style={sibling distance=18mm},
+      level 3/.style={sibling distance=17mm},
+      edge from parent/.style={draw=qbar,-{Stealth[length=2mm]},
+        edge from parent path={(\tikzchildnode) -- (\tikzparentnode)}},
+      level distance=13mm]
+    \node[classe] {Être vivant}
+      child { node[classe] {Animal}
+        child { node {Insecte} }
+        child { node {Mammifère}
+          child { node {Chien} }
+          child { node {Chauve-souris} } }
+        child { node {Oiseau} } }
+      child { node[classe] {Végétal}
+        child { node {Algue} }
+        child { node {Fleur} }
+        child { node {Arbre}
+          child { node {Pommier} }
+          child { node {Cerisier} } } };
+  \end{tikzpicture}
+  \end{center}
+  \vspace{-2mm}
+  \begin{methode}[Lecture]
+    la flèche se lit « \emph{est un} » : un \py{Pommier} est un \py{Arbre}, donc un
+    \py{Végétal} --- et il hérite de tout ce qu'elles définissent.
+  \end{methode}
+\end{frame}
+
+\begin{frame}[fragile,shrink=5]{Pilier 3 --- le polymorphisme}
+  \begin{defi}[Polymorphisme]
+    « plusieurs formes » : une même interface (une méthode de même nom) pour des
+    objets de types différents. Chaque objet réagit à sa manière.
+  \end{defi}
+\begin{lstlisting}
+class Voiture(Vehicule):
+    def se_deplacer(self):
+        print("La voiture roule.")
+
+class Bateau(Vehicule):
+    def se_deplacer(self):
+        print("Le bateau navigue.")
+
+for v in [Voiture(), Bateau()]:   # Même appel, comportements différents
+    v.se_deplacer()
+\end{lstlisting}
+  \vspace{-2mm}
+  \begin{methode}[Intérêt]
+    le code appelant ignore le type exact : ajouter un \py{Avion} ne change
+    rien à la boucle.
+  \end{methode}
+\end{frame}
+
+% ================================================================= 5. compléments
+\section{Compléments}
+
+\begin{frame}[fragile]{Attributs de classe et attributs d'instance}
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.47\textwidth}
+      \textbf{Attribut d'instance}
+      \begin{itemize}
+        \item propre à chaque objet ;
+        \item défini avec \py{self.nom\_attribut} ;
+        \item ex. le titulaire d'un compte.
+      \end{itemize}
+      \smallskip
+      \textbf{Attribut de classe}
+      \begin{itemize}
+        \item partagé par tous les objets ;
+        \item une seule copie en mémoire ;
+        \item ex. le nom de la banque.
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.51\textwidth}
+\begin{lstlisting}
+class Compte:
+    banque = "Banque Nationale"   # Attribut de classe
+
+    def __init__(self, titulaire):
+        self.titulaire = titulaire   # Attribut d'instance
+\end{lstlisting}
+      \smallskip
+      \begin{piege}
+        modifier \py{Compte.banque} change la valeur \emph{pour tous} les comptes.
+      \end{piege}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}[fragile]{Accesseurs et mutateurs (\emph{getters} \& \emph{setters})}
+  \begin{defi}[Rôle]
+    donner un accès \textbf{contrôlé} à un attribut privé : l'accesseur
+    (\emph{getter}) le lit, le mutateur (\emph{setter}) le modifie après vérification.
+  \end{defi}
+\begin{lstlisting}
+class Compte:
+    def __init__(self, titulaire, solde=0):
+        self.titulaire = titulaire
+        self.__solde   = solde          # Attribut privé
+
+    def get_solde(self):                # Accesseur
+        return self.__solde
+
+    def deposer(self, montant):         # Mutateur contrôlé
+        if montant <= 0:
+            raise ValueError("Le montant doit être positif.")
+        self.__solde += montant
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile,shrink=5]{La version pythonique : \py{@property}}
+\begin{lstlisting}
+class Compte:
+    def __init__(self, solde=0):
+        self.__solde = solde
+
+    @property
+    def solde(self):                # Lecture : compte.solde
+        return self.__solde
+
+    @solde.setter
+    def solde(self, valeur):        # Écriture : compte.solde = 100
+        if valeur < 0:
+            raise ValueError("Le solde ne peut pas être négatif.")
+        self.__solde = valeur
+\end{lstlisting}
+  \vspace{-2mm}
+  \begin{methode}[Avantage]
+    on écrit \py{compte.solde} comme un attribut ordinaire, mais le contrôle de
+    cohérence reste assuré par la classe.
+  \end{methode}
+\end{frame}
+
+% ================================================================= bilan
+\begin{frame}{Bilan}
+  \begin{center}
+  \renewcommand{\arraystretch}{1.25}\small
+  \begin{tabular}{@{}>{\bfseries}l l@{}}
+    \toprule
+    Notion & Définition en une ligne \\
+    \midrule
+    Classe          & le modèle : attributs + méthodes \\
+    Objet           & une instance concrète de la classe \\
+    Constructeur    & \py{\_\_init\_\_}, appelé à la création, initialise l'état \\
+    Encapsulation   & cacher l'interne, contrôler l'accès aux données \\
+    Héritage        & une classe enfant réutilise et spécialise un parent \\
+    Polymorphisme   & un même appel, des comportements différents \\
+    \bottomrule
+  \end{tabular}
+  \end{center}
+  \vspace{-1mm}
+  \begin{exam}
+    \textbf{Suite :} TP POO Python --- écrire ses propres classes, encapsuler
+    les attributs, construire une hiérarchie d'héritage.
+  \end{exam}
+\end{frame}
+
+\end{document}

@@ -1,0 +1,14 @@
+# Fichiers intermédiaires LaTeX
+*.aux
+*.log
+*.out
+*.toc
+*.lof
+*.lot
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+# Beamer
+*.nav
+*.snm
+*.vrb
