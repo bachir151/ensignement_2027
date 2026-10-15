@@ -1,7 +1,8 @@
-% Évaluation pratique — Tableur LibreOffice Calc (BTS CIEL 1re année) — 40 min, tableau saisi par l'élève
+% Évaluation pratique — Tableur LibreOffice Calc (BTS CIEL 1re année) — 35 min, tableau saisi par l'élève
 % Compilation :
-%   sujet   : pdflatex Eval_TP_Tableur.tex
-%   corrigé : pdflatex -jobname=Eval_TP_Tableur_Corrige "\def\modecorrige{1}\input{Eval_TP_Tableur.tex}"
+%   sujet A   : pdflatex -jobname=Eval_TP_Tableur_A "\input{Eval_TP_Tableur.tex}"
+%   sujet B   : pdflatex -jobname=Eval_TP_Tableur_B "\def\sujet{B}\input{Eval_TP_Tableur.tex}"
+%   corrigés  : ajouter \def\modecorrige{1} (jobname Eval_TP_Tableur_A_Corrige / Eval_TP_Tableur_B_Corrige)
 \documentclass[10pt,a4paper]{article}
 
 \usepackage[T1]{fontenc}
@@ -21,6 +22,37 @@
 \providecommand{\modecorrige}{0}
 \newif\ifcorrige
 \ifnum\modecorrige=1 \corrigetrue \else \corrigefalse \fi
+\providecommand{\sujet}{A}
+\newif\ifsujetB
+\if B\sujet \sujetBtrue \fi
+
+% Données propres à chaque sujet (même structure, mêmes pièges, valeurs différentes)
+\newcommand{\donneesA}{%
+4 & Switch & 180 & 12 & 15 & 9 & 14 & & & & \\ \hline
+5 & Routeur & 250 & 8 & 6 & 10 & 7 & & & & \\ \hline
+6 & Borne Wi-Fi & 95 & 20 & 25 & 18 & 30 & & & & \\ \hline
+7 & Câble RJ45 (lot) & 35 & 40 & 55 & 38 & 60 & & & & \\ \hline}
+\newcommand{\donneesB}{%
+4 & Caméra IP & 120 & 10 & 14 & 12 & 14 & & & & \\ \hline
+5 & Serveur NAS & 450 & 4 & 3 & 5 & 6 & & & & \\ \hline
+6 & Switch PoE & 210 & 9 & 11 & 8 & 12 & & & & \\ \hline
+7 & Cordon fibre (lot) & 30 & 60 & 45 & 70 & 65 & & & & \\ \hline}
+\newcommand{\resultatsA}{%
+Switch            & 50  & 12,5  & 9\,000,00~€ & 27,8~\% \\
+Routeur           & 31  & 7,75  & 7\,750,00~€ & 24,0~\% \\
+Borne Wi-Fi       & 93  & 23,25 & 8\,835,00~€ & 27,3~\% \\
+Câble RJ45 (lot)  & 193 & 48,25 & 6\,755,00~€ & 20,9~\% \\
+\midrule
+\textbf{Total (ligne 8)} & \textbf{367} & — & \textbf{32\,340,00~€} & (100~\%) \\}
+\newcommand{\resultatsB}{%
+Caméra IP           & 50  & 12,5 & 6\,000,00~€ & 20,2~\% \\
+Serveur NAS         & 18  & 4,5  & 8\,100,00~€ & 27,3~\% \\
+Switch PoE          & 40  & 10   & 8\,400,00~€ & 28,3~\% \\
+Cordon fibre (lot)  & 240 & 60   & 7\,200,00~€ & 24,2~\% \\
+\midrule
+\textbf{Total (ligne 8)} & \textbf{348} & — & \textbf{29\,700,00~€} & (100~\%) \\}
+\ifsujetB \let\donnees\donneesB \let\resultats\resultatsB
+\else      \let\donnees\donneesA \let\resultats\resultatsA \fi
 
 \definecolor{ipred}{HTML}{C0392B}
 \definecolor{cdcbar}{HTML}{A67C3D}
@@ -54,7 +86,7 @@
 \pagestyle{fancy}
 \fancyhf{}
 \renewcommand{\headrulewidth}{0pt}
-\fancyfoot[L]{\small\itshape\color{grisfoot}Évaluation — Tableur LibreOffice Calc\ifcorrige\ — CORRIGÉ\fi}
+\fancyfoot[L]{\small\itshape\color{grisfoot}Évaluation — Tableur LibreOffice Calc — Sujet \sujet\ifcorrige\ — CORRIGÉ\fi}
 \fancyfoot[R]{\small\color{grisfoot}\thepage}
 
 \setlist{itemsep=0pt,topsep=1pt,parsep=0pt,leftmargin=*}
@@ -66,9 +98,9 @@
 \begin{center}
   {\Large\bfseries Évaluation pratique — Tableur (LibreOffice Calc)\par}
   \vspace{1pt}
-  {\bfseries Saisie, formules, fonctions, mise en forme, tri et graphique — durée : 40 minutes\par}
+  {\bfseries Saisie, formules, fonctions, mise en forme, tri et graphique — durée : 35 minutes\par}
   \vspace{2pt}
-  BTS CIEL 1re année
+  BTS CIEL 1re année \qquad \fbox{\large\bfseries SUJET \sujet}
   \ifcorrige\par\vspace{2pt}{\large\bfseries\color{corr}CORRIGÉ ET BARÈME — document enseignant}\fi
 \end{center}
 
@@ -104,31 +136,26 @@ les colonnes G à J seront remplies par des formules). Prix unitaire en euros ho
 \rowcolor{black!6} & \textbf{A} & \textbf{B} & \textbf{C} & \textbf{D} & \textbf{E} & \textbf{F} & \textbf{G} & \textbf{H} & \textbf{I} & \textbf{J} \\ \hline
 1 & \multicolumn{10}{l|}{\textbf{Ventes 2025 — NetCIEL}} \\ \hline
 3 & Produit & Prix unitaire & T1 & T2 & T3 & T4 & Total qté & Moy./trim. & CA annuel & Part du CA \\ \hline
-4 & Switch & 180 & 12 & 15 & 9 & 14 & & & & \\ \hline
-5 & Routeur & 250 & 8 & 6 & 10 & 7 & & & & \\ \hline
-6 & Borne Wi-Fi & 95 & 20 & 25 & 18 & 30 & & & & \\ \hline
-7 & Câble RJ45 (lot) & 35 & 40 & 55 & 38 & 60 & & & & \\ \hline
+\donnees
 8 & Total & & & & & & & & & \\ \hline
 \end{tabular}
 \end{center}
 \end{partie}
 
 %---------------------------------------------------------------------
-\begin{partie}{Partie A — Calculs avec formules et recopie}{8 pts}
+\begin{partie}{Partie A — Calculs avec formules et recopie}{9 pts}
 \begin{enumerate}[label=\textbf{A\arabic*.}]
   \item En \cel{G4}, calculer le nombre total d'articles vendus dans l'année avec la fonction \cel{SOMME},
-        puis recopier la formule jusqu'en \cel{G7} (poignée de recopie). \pts{1,5 pt}
+        puis recopier la formule jusqu'en \cel{G7} (poignée de recopie). \pts{2 pts}
   \item En \cel{H4}, calculer la moyenne trimestrielle des ventes avec la fonction \cel{MOYENNE}, puis recopier
-        jusqu'en \cel{H7}. \pts{1 pt}
+        jusqu'en \cel{H7}. \pts{1,5 pt}
   \item En \cel{I4}, calculer le chiffre d'affaires annuel du produit (prix unitaire $\times$ total des quantités),
-        puis recopier jusqu'en \cel{I7}. \pts{1,5 pt}
+        puis recopier jusqu'en \cel{I7}. \pts{2 pts}
   \item Ligne 8 : calculer en \cel{C8} le total des ventes du 1\textsuperscript{er} trimestre, puis recopier
         la formule vers la droite jusqu'en \cel{G8}. Calculer aussi le CA total en \cel{I8}. \pts{1,5 pt}
   \item En \cel{J4}, calculer la part du CA du produit dans le CA total (\cel{I4} divisé par le CA total).
         La formule doit pouvoir être recopiée jusqu'en \cel{J7} \textbf{sans être modifiée} :
-        utiliser une \textbf{référence absolue} (symbole \cel{\$}). \pts{1,5 pt}
-  \item Saisir en \cel{A10} « CA max » et en \cel{A11} « CA min ». Calculer en \cel{B10} et \cel{B11} le plus grand
-        et le plus petit CA de la plage \cel{I4:I7} (fonctions \cel{MAX} et \cel{MIN}). \pts{1 pt}
+        utiliser une \textbf{référence absolue} (symbole \cel{\$}). \pts{2 pts}
 \end{enumerate}
 \end{partie}
 
@@ -144,15 +171,14 @@ les colonnes G à J seront remplies par des formules). Prix unitaire en euros ho
 
 \newpage
 %---------------------------------------------------------------------
-\begin{partie}{Partie C — Tri et graphique}{5 pts}
+\begin{partie}{Partie C — Tri et graphique}{4 pts}
 \begin{enumerate}[label=\textbf{C\arabic*.}]
   \item Trier les produits (lignes 4 à 7 seulement, \textbf{sans la ligne Total}) par CA annuel
         \textbf{décroissant} (\menu{Données > Trier}). Vérifier que les résultats sont restés justes. \pts{1,5 pt}
   \item Insérer un graphique en \textbf{secteurs} représentant la répartition du CA annuel par produit
         (noms des produits et CA ; touche \textbf{Ctrl} pour sélectionner deux plages non adjacentes)
-        (\menu{Insertion > Diagramme}). \pts{2 pts}
-  \item Donner au graphique le titre « Répartition du CA 2025 » et afficher les pourcentages sur les secteurs.
-        Le placer à côté du tableau, sans masquer de données. \pts{1,5 pt}
+        (\menu{Insertion > Diagramme}), avec le titre « Répartition du CA 2025 ». Le placer à côté du tableau,
+        sans masquer de données. \pts{2,5 pts}
 \end{enumerate}
 \end{partie}
 
@@ -164,8 +190,10 @@ les colonnes G à J seront remplies par des formules). Prix unitaire en euros ho
 \zone{2.8cm}{\cel{=I4/\$I\$8}. Sans \cel{\$}, la recopie décale les deux références : \cel{J5} contiendrait
 \cel{=I5/I9}. \cel{I9} est vide, d'où l'erreur \cel{\#DIV/0!}. Le \cel{\$} bloque la colonne et la ligne de la cellule du total.}
   \item Le produit le plus vendu en quantité est-il celui qui rapporte le plus ? Justifier avec vos résultats. \pts{1,5 pt}
-\zone{2.8cm}{Non. Le câble RJ45 est le plus vendu (193 lots) mais rapporte le moins (6\,755~€, 20,9~\%) à cause de son
-faible prix (35~€). Le switch rapporte le plus (9\,000~€, 27,8~\%) avec 50 unités seulement.}
+\zone{2.8cm}{\ifsujetB Non. Le cordon fibre est le plus vendu (240 lots) mais ne rapporte que 7\,200~€ (24,2~\%) à cause
+de son faible prix (30~€). Le switch PoE rapporte le plus (8\,400~€, 28,3~\%) avec 40 unités seulement.
+\else Non. Le câble RJ45 est le plus vendu (193 lots) mais rapporte le moins (6\,755~€, 20,9~\%) à cause de son
+faible prix (35~€). Le switch rapporte le plus (9\,000~€, 27,8~\%) avec 50 unités seulement.\fi}
 \end{enumerate}
 \end{partie}
 
@@ -188,18 +216,13 @@ Valeurs ci-dessous \textbf{avant le tri} (après le tri, l'ordre des lignes chan
 \toprule
 \textbf{Produit} & \textbf{G : Total qté} & \textbf{H : Moy./trim.} & \textbf{I : CA annuel} & \textbf{J : Part du CA} \\
 \midrule
-Switch            & 50  & 12,5  & 9\,000,00~€ & 27,8~\% \\
-Routeur           & 31  & 7,75  & 7\,750,00~€ & 24,0~\% \\
-Borne Wi-Fi       & 93  & 23,25 & 8\,835,00~€ & 27,3~\% \\
-Câble RJ45 (lot)  & 193 & 48,25 & 6\,755,00~€ & 20,9~\% \\
-\midrule
-\textbf{Total (ligne 8)} & \textbf{367} & — & \textbf{32\,340,00~€} & (100~\%) \\
+\resultats
 \bottomrule
 \end{tabular}
 
 \smallskip
-Totaux trimestriels : \cel{C8} = 80 ; \cel{D8} = 101 ; \cel{E8} = 75 ; \cel{F8} = 111.
-\quad \cel{B10} = 9\,000 ; \cel{B11} = 6\,755.
+Totaux trimestriels : \ifsujetB \cel{C8} = 83 ; \cel{D8} = 73 ; \cel{E8} = 95 ; \cel{F8} = 97.
+\else \cel{C8} = 80 ; \cel{D8} = 101 ; \cel{E8} = 75 ; \cel{F8} = 111.\fi
 \end{center}
 
 \begin{center}\small
@@ -209,24 +232,26 @@ Totaux trimestriels : \cel{C8} = 80 ; \cel{D8} = 101 ; \cel{E8} = 75 ; \cel{F8} 
 \midrule
 Partie 0 & — & 1 pt si les 24 valeurs, les libellés et les cellules sont exacts ; 0,5 pt pour 1 ou 2 erreurs ; 0 au-delà.
 En cas d'erreur de saisie, noter les parties A à C sur les formules, pas sur les valeurs. \\
-A1 & \cel{=SOMME(C4:F4)} & 1 pt formule, 0,5 pt recopie. \cel{=C4+D4+E4+F4} : 1 pt sur 1,5 (fonction demandée). \\
-A2 & \cel{=MOYENNE(C4:F4)} & \cel{=G4/4} accepté pour 0,5 pt sur 1 (fonction demandée). \\
-A3 & \cel{=B4*G4} & 1 pt formule, 0,5 pt recopie. \\
+A1 & \cel{=SOMME(C4:F4)} & 1,5 pt formule, 0,5 pt recopie. \cel{=C4+D4+E4+F4} : 1 pt sur 2 (fonction demandée). \\
+A2 & \cel{=MOYENNE(C4:F4)} & 1 pt formule, 0,5 pt recopie. \cel{=G4/4} : 0,5 pt sur 1,5 (fonction demandée). \\
+A3 & \cel{=B4*G4} & 1,5 pt formule, 0,5 pt recopie. \\
 A4 & \cel{=SOMME(C4:C7)} ; \cel{I8} : \cel{=SOMME(I4:I7)} & 1 pt ligne C–G recopiée, 0,5 pt \cel{I8}. \cel{H8} vide ou moyenne : accepté. \\
 A5 & \cel{=I4/\$I\$8} & \cel{=I4/I\$8} accepté. Sans \cel{\$} : \cel{\#DIV/0!} dès \cel{J5}, 0,5 pt max. \\
-A6 & \cel{=MAX(I4:I7)} ; \cel{=MIN(I4:I7)} & 0,5 pt chacun. Valeur tapée : 0. \\
 B1--B3 & — & Contrôle visuel. B3 : 0,5 pt monétaire, 0,5 pt pourcentage à 1 décimale. \\
-C1 & — & Ordre attendu : Switch, Borne Wi-Fi, Routeur, Câble. Si la ligne Total est incluse dans le tri ou si seule
+C1 & — & Ordre attendu : \ifsujetB Switch PoE, Serveur NAS, Cordon fibre, Caméra IP.\else Switch, Borne Wi-Fi, Routeur, Câble.\fi{} Si la ligne Total est incluse dans le tri ou si seule
 la colonne I a été triée (données mélangées) : 0. \\
-C2--C3 & — & Plages \cel{A4:A7} et \cel{I4:I7}. Graphique en secteurs avec 4 parts, titre exact, pourcentages affichés. \\
-Bonus & \cel{=SI(G4>=50;"Best-seller";"")} & « Best-seller » attendu pour le switch (50), la borne (93) et le câble (193) ;
-pas pour le routeur (31). Avec \cel{>50} au lieu de \cel{>=50}, le switch est oublié : 0,5 pt. \\
+C2 & — & Plages \cel{A4:A7} et \cel{I4:I7}. 1,5 pt graphique en secteurs avec 4 parts nommées, 0,5 pt titre exact,
+0,5 pt placement sans masquer le tableau. \\
+Bonus & \cel{=SI(G4>=50;"Best-seller";"")} & \ifsujetB « Best-seller » attendu pour la caméra IP (50) et le cordon fibre (240) ; pas pour le NAS (18) ni le switch PoE (40).
+Avec \cel{>50} au lieu de \cel{>=50}, la caméra est oubliée : 0,5 pt.
+\else « Best-seller » attendu pour le switch (50), la borne (93) et le câble (193) ;
+pas pour le routeur (31). Avec \cel{>50} au lieu de \cel{>=50}, le switch est oublié : 0,5 pt.\fi \\
 \bottomrule
 \end{tabularx}
 \end{center}
 
-\textbf{Répartition indicative du temps (40 min)} : création du fichier et saisie 6 min, partie A 12 min,
-partie B 5 min, partie C 8 min, partie D 4 min, enregistrement et marge 5 min.
+\textbf{Répartition indicative du temps (35 min)} : création du fichier et saisie 6 min, partie A 10 min,
+partie B 4 min, partie C 6 min, partie D 4 min, enregistrement et marge 5 min.
 \fi
 
 \end{document}
