@@ -2,7 +2,7 @@
 """Arithmetic checks for the CIEL2 "fil rouge" addressing plan.
 
 Usage:
-    python3 commun/verif_adressage.py [chapter_dir ...]
+    python3 commun/verif_adressage.py [theme_dir ...]
 
 Checks performed:
   1. The VLSM plan itself: alignment, inclusion in 192.168.10.0/24,
@@ -189,7 +189,8 @@ def check_tex(chapter, nets):
 def main():
     root = pathlib.Path(__file__).resolve().parent.parent
     nets = check_plan()
-    chapters = [pathlib.Path(p).resolve() for p in sys.argv[1:]] or sorted(root.glob("0[2-9]-*"))
+    chapters = [pathlib.Path(p).resolve() for p in sys.argv[1:]] or sorted(d for d in root.iterdir()
+                                                                 if (d / "cours").is_dir() or (d / "tp").is_dir())
     for c in chapters:
         check_configs(c, nets)
         check_tex(c, nets)

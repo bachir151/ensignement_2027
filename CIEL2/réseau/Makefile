@@ -1,23 +1,23 @@
 # Compilation des supports CIEL2 réseau (LuaLaTeX).
 #   make            -> tous les chapitres, versions élève + prof/corrigé
-#   make 03         -> un chapitre (02, 03, 04 ou 05)
+#   make ospf       -> une thématique (subnetting-vlsm, ospf, wireshark-transport)
 #   make verif      -> contrôle arithmétique des adresses (Python ipaddress)
 #   make png        -> rendu PNG de tous les PDF (build/png, contrôle visuel)
 #   make clean      -> fichiers auxiliaires ; make distclean -> + PDF
-# Chaque NOM.tex de <chapitre>/cours/ ou <chapitre>/tp/ donne
-#   <chapitre>/pdf/NOM.pdf          version élève
-#   <chapitre>/pdf/NOM-prof.pdf     version professeur (cours)
-#   <chapitre>/pdf/NOM-corrige.pdf  corrigé (TP, TD, évaluations)
+# Chaque NOM.tex de <thème>/cours/ ou <thème>/tp/ donne
+#   <thème>/pdf/NOM.pdf          version élève
+#   <thème>/pdf/NOM-prof.pdf     version professeur (cours)
+#   <thème>/pdf/NOM-corrige.pdf  corrigé (TP, TD, évaluations)
 
 LATEX := lualatex -interaction=nonstopmode -halt-on-error -file-line-error
 ROOT  := $(CURDIR)
 BUILD := $(ROOT)/build
-CHAPS := 02 03 04 05
+THEMES := subnetting-vlsm ospf wireshark-transport
 DEPS  := $(wildcard $(ROOT)/commun/*.sty $(ROOT)/commun/icones/*.tex)
 export TEXINPUTS := $(ROOT)/commun//:
 
-.PHONY: all $(CHAPS) verif png clean distclean
-all: $(CHAPS)
+.PHONY: all $(THEMES) verif png clean distclean
+all: $(THEMES)
 
 # compile <source> <jobname> <0|1> : deux passes (LastPage, numéros de diapos)
 define compile
@@ -32,7 +32,7 @@ define compile
 	@printf "    %s pages\n" "$$(pdfinfo $@ 2>/dev/null | awk '/^Pages/{print $$2}')"
 endef
 
-# rules <chapitre> <source>
+# rules <thème> <source> <suffixe>
 define rules
 $(1): $(dir $(2))../pdf/$(basename $(notdir $(2))).pdf $(dir $(2))../pdf/$(basename $(notdir $(2)))-$(3).pdf
 $(dir $(2))../pdf/$(basename $(notdir $(2))).pdf: $(2) $(DEPS)
@@ -41,16 +41,16 @@ $(dir $(2))../pdf/$(basename $(notdir $(2)))-$(3).pdf: $(2) $(DEPS)
 	$$(call compile,$(2),$(basename $(notdir $(2)))-$(3),1)
 endef
 
-$(foreach c,$(CHAPS),\
-  $(foreach s,$(wildcard $(ROOT)/$(c)-*/cours/*.tex),$(eval $(call rules,$(c),$(s),prof)))\
-  $(foreach s,$(wildcard $(ROOT)/$(c)-*/tp/*.tex),$(eval $(call rules,$(c),$(s),corrige))))
+$(foreach t,$(THEMES),\
+  $(foreach s,$(wildcard $(ROOT)/$(t)/cours/*.tex),$(eval $(call rules,$(t),$(s),prof)))\
+  $(foreach s,$(wildcard $(ROOT)/$(t)/tp/*.tex),$(eval $(call rules,$(t),$(s),corrige))))
 
 verif:
 	python3 $(ROOT)/commun/verif_adressage.py
 
 png:
 	@mkdir -p $(BUILD)/png
-	@for f in $(ROOT)/0*/pdf/*.pdf; do \
+	@for f in $(foreach t,$(THEMES),$(wildcard $(ROOT)/$(t)/pdf/*.pdf)); do \
 	  pdftoppm -r 60 -png $$f $(BUILD)/png/$$(basename $$f .pdf); done
 	@echo "  PNG dans build/png"
 
@@ -58,4 +58,4 @@ clean:
 	rm -rf $(BUILD)
 
 distclean: clean
-	rm -f $(ROOT)/0*/pdf/*.pdf
+	rm -f $(foreach t,$(THEMES),$(ROOT)/$(t)/pdf/*.pdf)

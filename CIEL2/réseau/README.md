@@ -1,4 +1,4 @@
-# Réseau — BTS CIEL IR 2ᵉ année — chapitres 2 à 5
+# Réseau — BTS CIEL IR 2ᵉ année
 
 Supports LaTeX (cours Beamer, TD, TP Packet Tracer, TP Wireshark) bâtis sur un
 **fil rouge** unique : la plage `192.168.10.0/24` découpée en VLSM.
@@ -13,14 +13,18 @@ Supports LaTeX (cours Beamer, TD, TP Packet Tracer, TP Wireshark) bâtis sur un
 
 Convention : passerelle = dernière adresse utilisable. Espace libre : `.232/29`, `.240/28`.
 
-## Progression
+## Progression (dossiers par thématique)
 
 | Ordre | Dossier | Contenu | Durée | État |
 |---|---|---|---|---|
-| 1 | `02-subnetting-vlsm` | Cours + TD : binaire, ET logique, taille de bloc, subnetting, VLSM | 8–10 h | séance 1 (pilote) |
-| 2 | `03-tp-application-vlsm` | TP Packet Tracer : plan fil rouge (VLAN, inter-VLAN, DHCP, statique) + éval courte | 4–6 h | TP (pilote) |
-| 3 | `04-ospf` | Cours + TP Packet Tracer OSPF zone unique + éval courte | 6–8 h | à faire |
-| 4 | `05-wireshark-transport` | Cours TCP/UDP + TP captures (ARP, ICMP, DHCP, DNS, TCP) | 8–10 h | à faire |
+| 1 | `subnetting-vlsm/` | Ch. 2 — cours + TD : binaire, ET logique, taille de bloc, subnetting, VLSM | 8–10 h | séance 1 (pilote) |
+| 2 | `subnetting-vlsm/` | Ch. 3 — TP Packet Tracer : plan fil rouge (VLAN, inter-VLAN, DHCP, statique) + éval courte | 4–6 h | TP (pilote) |
+| 3 | `ospf/` | Ch. 4 — cours + TP Packet Tracer OSPF zone unique + éval courte | 6–8 h | à faire |
+| 4 | `wireshark-transport/` | Ch. 5 — cours TCP/UDP + TP captures (ARP, ICMP, DHCP, DNS, TCP) | 8–10 h | à faire |
+
+Chaque thématique contient `cours/` (Beamer), `tp/` (TD, TP, évaluations), `pdf/` (sorties)
+et `packet-tracer/` ou `captures/`. Le cours `Cours1_CIDR_Sous-reseaux` (à la racine) est antérieur
+à cette série.
 
 Prérequis supposés : VLAN/trunk 802.1Q, routage inter-VLAN + DHCP, routage statique.
 
@@ -28,7 +32,7 @@ Prérequis supposés : VLAN/trunk 802.1Q, routage inter-VLAN + DHCP, routage sta
 
 ```bash
 make            # tout (versions élève + prof/corrigé)
-make 03         # un chapitre : 02, 03, 04 ou 05
+make ospf       # une thématique : subnetting-vlsm, ospf, wireshark-transport
 make verif      # contrôle arithmétique des adresses (Python ipaddress)
 make png        # PNG de contrôle visuel dans build/png
 make clean      # supprime build/ ; make distclean supprime aussi les PDF
@@ -41,7 +45,7 @@ Le booléen est `\ifcorrige`, positionné par `\def\cielcorrige{1}` en ligne de 
 Compilation manuelle d'un fichier (depuis son dossier) :
 
 ```bash
-export TEXINPUTS=/chemin/ciel2-reseau/commun//:
+export TEXINPUTS=/chemin/ensignement_2027/CIEL2/réseau/commun//:
 lualatex fichier.tex                                   # élève
 lualatex -jobname=fichier-corrige "\def\cielcorrige{1}\input{fichier.tex}"
 ```
@@ -74,7 +78,8 @@ commun/
   ciel-tp.sty         TP compacts, impression noir et blanc
   icones/ciel-icones.tex  pictos TikZ : routeur, switch, pc, parefeu, serveur, nuage ; liens lien/trunk/serie
   verif_adressage.py  contrôle du plan, des configurations Cisco et des adresses citées dans les .tex
-0X-…/cours  tp  pdf  packet-tracer|captures
+subnetting-vlsm/  ospf/  wireshark-transport/
+  cours/  tp/  pdf/  packet-tracer/ | captures/
 ```
 
 ## Charte
