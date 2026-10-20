@@ -1,0 +1,37 @@
+enable
+configure terminal
+hostname R1
+no ip domain-lookup
+interface GigabitEthernet0/0
+ description Trunk vers SW1 G0/1
+ no ip address
+ no shutdown
+interface GigabitEthernet0/0.10
+ description Passerelle VLAN 10 PRODUCTION
+ encapsulation dot1Q 10
+ ip address 192.168.10.126 255.255.255.128
+interface GigabitEthernet0/0.20
+ description Passerelle VLAN 20 ADMINISTRATION
+ encapsulation dot1Q 20
+ ip address 192.168.10.190 255.255.255.192
+interface GigabitEthernet0/0.30
+ description Passerelle VLAN 30 INVITES
+ encapsulation dot1Q 30
+ ip address 192.168.10.222 255.255.255.224
+interface GigabitEthernet0/1
+ description Liaison R1-R2
+ ip address 192.168.10.225 255.255.255.252
+ no shutdown
+exit
+ip dhcp excluded-address 192.168.10.101 192.168.10.126
+ip dhcp excluded-address 192.168.10.222
+ip dhcp pool PRODUCTION
+ network 192.168.10.0 255.255.255.128
+ default-router 192.168.10.126
+ip dhcp pool INVITES
+ network 192.168.10.192 255.255.255.224
+ default-router 192.168.10.222
+exit
+ip route 0.0.0.0 0.0.0.0 192.168.10.226
+end
+copy running-config startup-config

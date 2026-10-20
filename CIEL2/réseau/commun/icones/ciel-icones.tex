@@ -1,0 +1,77 @@
+% ciel-icones.tex — pictos réseau TikZ partagés (routeur, switch, PC, pare-feu, serveur, nuage)
+% Chargé par ciel-beamer.sty et ciel-tp.sty. Les couleurs viennent de deux
+% couleurs nommées que chaque thème définit :
+%   cielicon   : remplissage du picto
+%   cieliconfg : traits intérieurs (flèches, écran)
+%
+% Usage (dans un tikzpicture) :
+%   \node[routeur] (R1) at (0,0) {};
+%   \node[switch]  (S1) at (2,0) {};
+%   \node[pc]      (P1) at (4,0) {};
+%   \node[parefeu] (FW) at (6,0) {};
+%   \node[serveur] (SV) at (8,0) {};
+%   \node[nuage]   (NET) at (10,0) {Internet};
+%   \draw[lien]  (R1) -- (S1);   % liaison simple
+%   \draw[trunk] (S1) -- (S2);   % liaison 802.1Q (trait double, lisible en N&B)
+% Les nœuds sont réguliers : ancres .north, .east, etc. utilisables.
+\usetikzlibrary{arrows.meta,positioning,calc,shapes.geometric,shapes.symbols,backgrounds,fit}
+
+\tikzset{
+  % petite flèche intérieure des pictos
+  ciel@arrow/.style={draw=cieliconfg,line width=.75pt,-{Triangle[length=1.4pt,width=2.2pt]}},
+  % --- routeur : disque + 4 flèches en croix (2 entrantes, 2 sortantes)
+  routeur/.style={circle,minimum size=9mm,inner sep=0pt,fill=cielicon,draw=cielicon,
+    path picture={
+      \coordinate (c) at (path picture bounding box.center);
+      \draw[ciel@arrow] ($(c)+(.6mm,.6mm)$)   -- ($(c)+(2.6mm,2.6mm)$);
+      \draw[ciel@arrow] ($(c)+(-.6mm,-.6mm)$) -- ($(c)+(-2.6mm,-2.6mm)$);
+      \draw[ciel@arrow] ($(c)+(-2.6mm,2.6mm)$) -- ($(c)+(-.6mm,.6mm)$);
+      \draw[ciel@arrow] ($(c)+(2.6mm,-2.6mm)$) -- ($(c)+(.6mm,-.6mm)$);
+    }},
+  % --- switch : rectangle arrondi + flèches opposées
+  switch/.style={rectangle,rounded corners=1.2mm,minimum width=12mm,minimum height=6.5mm,
+    inner sep=0pt,fill=cielicon,draw=cielicon,
+    path picture={
+      \coordinate (c) at (path picture bounding box.center);
+      \draw[ciel@arrow] ($(c)+(-3.6mm,1.1mm)$) -- ($(c)+(3.6mm,1.1mm)$);
+      \draw[ciel@arrow] ($(c)+(3.6mm,-1.1mm)$) -- ($(c)+(-3.6mm,-1.1mm)$);
+    }},
+  % --- PC : écran + pied
+  pc/.style={rectangle,rounded corners=.6mm,minimum width=7.5mm,minimum height=5.5mm,
+    inner sep=0pt,fill=cielicon,draw=cielicon,
+    path picture={
+      \fill[cieliconfg] ($(path picture bounding box.south west)+(.8mm,.8mm)$)
+        rectangle ($(path picture bounding box.north east)+(-.8mm,-.8mm)$);
+    },
+    append after command={\pgfextra{\let\ciel@ln\tikzlastnode
+      \fill[cielicon] ([xshift=-.6mm]\ciel@ln.south) rectangle ([xshift=.6mm,yshift=-1.1mm]\ciel@ln.south);
+      \fill[cielicon,rounded corners=.3mm] ([xshift=-2.4mm,yshift=-1.1mm]\ciel@ln.south)
+        rectangle ([xshift=2.4mm,yshift=-1.7mm]\ciel@ln.south);}}},
+  % --- pare-feu : mur de briques
+  parefeu/.style={rectangle,minimum width=9mm,minimum height=7mm,inner sep=0pt,
+    fill=cielicon,draw=cielicon,
+    path picture={
+      \coordinate (sw) at (path picture bounding box.south west);
+      \foreach \y in {1.75,3.5,5.25} \draw[cieliconfg,line width=.5pt] ($(sw)+(0,\y mm)$) -- ++(9mm,0);
+      \foreach \x in {3,6} \draw[cieliconfg,line width=.5pt] ($(sw)+(\x mm,0)$) -- ++(0,1.75mm) ($(sw)+(\x mm,3.5mm)$) -- ++(0,1.75mm);
+      \foreach \x in {1.5,4.5,7.5} \draw[cieliconfg,line width=.5pt] ($(sw)+(\x mm,1.75mm)$) -- ++(0,1.75mm) ($(sw)+(\x mm,5.25mm)$) -- ++(0,1.75mm);
+    }},
+  % --- serveur : tour avec baies
+  serveur/.style={rectangle,rounded corners=.6mm,minimum width=6mm,minimum height=9mm,
+    inner sep=0pt,fill=cielicon,draw=cielicon,
+    path picture={
+      \coordinate (nw) at (path picture bounding box.north west);
+      \foreach \y in {1.5,3,4.5} \fill[cieliconfg] ($(nw)+(1mm,-\y mm)$) rectangle ++(4mm,-.6mm);
+    }},
+  % --- nuage (Internet, réseau distant)
+  nuage/.style={cloud,cloud puffs=10,aspect=2,minimum width=16mm,minimum height=9mm,
+    inner sep=1pt,draw=cielicon,line width=.8pt,fill=cielicon!12,font=\cielfontlabel\scriptsize},
+  % --- liaisons
+  lien/.style={line width=.9pt,draw=cielline},
+  trunk/.style={double=cielbg,double distance=1.1pt,line width=.7pt,draw=cielline},
+  serie/.style={line width=.9pt,draw=cielline,dashed},
+  % --- étiquettes
+  equip/.style={font=\cielfontlabel\footnotesize,text=cieltext,inner sep=1pt},
+  itf/.style={font=\cielfontlabel\tiny,text=cieltext,inner sep=.5pt,fill=cielbg,fill opacity=.85,text opacity=1},
+  adr/.style={font=\cielfontmono\tiny,text=cieltext,inner sep=.5pt},
+}

@@ -1,0 +1,15 @@
+enable
+configure terminal
+hostname FW
+no ip domain-lookup
+interface GigabitEthernet0/0
+ description Liaison FW-R2
+ ip address 192.168.10.230 255.255.255.252
+ no shutdown
+interface Loopback0
+ description Internet simule (TEST-NET-3, RFC 5737)
+ ip address 203.0.113.1 255.255.255.255
+exit
+ip route 192.168.10.0 255.255.255.0 192.168.10.229
+end
+copy running-config startup-config

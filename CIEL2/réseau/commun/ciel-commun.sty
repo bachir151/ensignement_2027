@@ -1,0 +1,59 @@
+% ciel-commun.sty — socle commun aux cours (beamer) et aux TP
+%   * polices (fontspec, LuaLaTeX) : Libre Baskerville + Inter + mono
+%   * booléen \ifcorrige (version prof / corrigé)
+%   * macros d'adressage
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{ciel-commun}[2026/10/20 socle commun CIEL2 reseau]
+
+\RequirePackage{iftex}
+\ifluatex\else
+  \PackageError{ciel-commun}{Compiler avec LuaLaTeX}{Ces documents utilisent fontspec : lualatex fichier.tex}
+\fi
+\RequirePackage{fontspec}
+\RequirePackage[french]{babel}
+\RequirePackage{xcolor}
+\RequirePackage{tikz}
+
+% ---------------------------------------------------------------- version
+% Version élève par défaut. Version prof/corrigé :
+%   lualatex "\def\cielcorrige{1}\input{fichier.tex}"   (c'est ce que fait le Makefile)
+\providecommand{\cielcorrige}{0}
+\newif\ifcorrige
+\ifnum\cielcorrige=1 \corrigetrue \else \corrigefalse \fi
+
+% ---------------------------------------------------------------- polices
+\newcommand{\ciel@needfont}[1]{%
+  \IfFontExistsTF{#1}{}{\PackageError{ciel-commun}{Police '#1' introuvable}%
+    {Installer la police (voir README.md, section Polices) puis fc-cache -f}}}
+\ciel@needfont{Libre Baskerville}
+\ciel@needfont{Inter-SemiBold.otf}
+
+\setmainfont{Libre Baskerville}[Ligatures=TeX]
+\setsansfont{Inter}[UprightFont=*-Regular.otf,BoldFont=*-SemiBold.otf,
+  ItalicFont=*-Italic.otf,BoldItalicFont=*-SemiBoldItalic.otf,Extension=,Ligatures=TeX]
+% Inter semi-gras : étiquettes, numéros, tags
+\newfontfamily\cielfontlabel{Inter-SemiBold.otf}[BoldFont=Inter-Bold.otf,Ligatures=TeX]
+% Inter semi-gras espacé : eyebrows en capitales
+\newfontfamily\cielfontcaps{Inter-SemiBold.otf}[LetterSpace=14,Ligatures=TeX]
+% Mono : JetBrains Mono si présente, sinon DejaVu Sans Mono (paquet fonts-dejavu)
+\IfFontExistsTF{JetBrains Mono}
+  {\setmonofont{JetBrains Mono}[Scale=MatchLowercase]}
+  {\setmonofont{DejaVu Sans Mono}[Scale=MatchLowercase]}
+\newcommand{\cielfontmono}{\ttfamily}
+
+% glyphes absents de Libre Baskerville
+\RequirePackage{newunicodechar}
+\newunicodechar{→}{\ensuremath{\rightarrow}}
+\newunicodechar{←}{\ensuremath{\leftarrow}}
+\newunicodechar{⇒}{\ensuremath{\Rightarrow}}
+\newunicodechar{≠}{\ensuremath{\neq}}
+\newunicodechar{×}{\ensuremath{\times}}
+
+% ---------------------------------------------------------------- adressage
+\newcommand{\ip}[1]{{\ttfamily #1}}          % adresse, réseau, masque
+\newcommand{\cmd}[1]{{\ttfamily #1}}         % commande inline
+\newcommand{\itfname}[1]{{\cielfontlabel #1}}% nom d'interface (G0/0…)
+
+% charge les pictos (chemin résolu via TEXINPUTS = commun//)
+\AtEndOfPackage{\input{ciel-icones.tex}}
+\endinput

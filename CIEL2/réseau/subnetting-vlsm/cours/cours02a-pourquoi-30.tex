@@ -1,0 +1,247 @@
+% Chapitre 2 — séance 1 : binaire, masque, ET logique, taille de bloc
+% Accroche : « pourquoi les liaisons routeur étaient-elles en /30 ? »
+% Compilation : make 02 (versions élève et prof) — voir README.md
+\documentclass[aspectratio=169,10pt]{beamer}
+\usepackage{ciel-beamer}
+
+\title{Pourquoi /30 ?}
+\subtitle{BTS CIEL IR · 2\textsuperscript{e} année · Chapitre 2 · Séance 1}
+\author{Réseau — Subnetting et VLSM}
+\date{Binaire, masque, ET logique, taille de bloc}
+\chapitre{Ch. 2 · Subnetting}
+
+\begin{document}
+
+% ------------------------------------------------------------------ 1
+\begin{frame}[plain]
+  \titlepage
+\end{frame}
+
+% ------------------------------------------------------------------ 2 accroche
+\begin{frame}
+\frametitle{Pourquoi des /30 entre les routeurs ?}
+\framesubtitle{Accroche · le réseau fil rouge}
+\begin{columns}[T]
+\column{.42\linewidth}
+\begin{carte}[tag=Topologie]{}
+\centering
+\begin{tikzpicture}[x=1cm,y=1cm]
+  \node[parefeu] (FW) at (0,0) {};
+  \node[routeur] (R2) at (1.75,0) {};
+  \node[routeur] (R1) at (3.5,0) {};
+  \node[switch]  (S1) at (3.5,-1.25) {};
+  \draw[lien] (FW) -- node[below=1pt,adr]{.228/30} (R2);
+  \draw[lien] (R2) -- node[below=1pt,adr]{.224/30} (R1);
+  \draw[trunk] (R1) -- (S1);
+  \node[equip,above=1pt of FW]{FW};
+  \node[equip,above=1pt of R2]{R2};
+  \node[equip,above=1pt of R1]{R1};
+  \node[equip,left=2pt of S1,align=right]{VLAN 10, 20, 30};
+\end{tikzpicture}
+\end{carte}
+\column{.53\linewidth}
+\begin{carte}[tag=Plan 192.168.10.0/24]{}
+\footnotesize
+\setlength{\tabcolsep}{4pt}\begin{tabular}{@{}l M M@{}}
+Production   & 192.168.10.0/25   & .126\\
+Admin.       & 192.168.10.128/26 & .190\\
+Wi-Fi invité & 192.168.10.192/27 & .222\\
+R1–R2        & 192.168.10.224/30 & --\\
+R2–FW        & 192.168.10.228/30 & --\\
+\end{tabular}
+\end{carte}
+\end{columns}
+\vfill
+\begin{callout}[or]
+\cielfontlabel Pourquoi /30 et pas /24 ou /27 ? En fin de séance, vous saurez le démontrer.
+\end{callout}
+\end{frame}
+
+% ------------------------------------------------------------------ 3 32 bits
+\begin{frame}
+\frametitle{Une adresse IPv4, c'est 32 bits}
+\framesubtitle{Rappel · 4 octets de 8 bits}
+\begin{carte}[tag=Exemple · adresse de R2 côté R1]{}
+\centering
+{\cielfontlabel\Large 192\,·\,168\,·\,10\,·\,\textcolor{or!70!black}{226}}\par\medskip
+\poids\par
+\octet{1,1,1,0,0,0,1,0}\par\medskip
+\small 226 = 128 + 64 + 32 + 2
+\end{carte}
+\vfill
+\begin{columns}[T]
+\column{.48\linewidth}
+\begin{callout}[rose]\small Un octet vaut de 0 (00000000) à 255 (11111111).\end{callout}
+\column{.48\linewidth}
+\begin{callout}[vert]\small Chaque bit a un poids : 128, 64, 32, 16, 8, 4, 2, 1.\end{callout}
+\end{columns}
+\end{frame}
+
+% ------------------------------------------------------------------ 4 conversion
+\begin{frame}
+\frametitle{Décimal vers binaire : on retire les poids}
+\framesubtitle{Méthode}
+\begin{columns}[T]
+\column{.42\linewidth}
+\begin{carte}[tag=Méthode]{}
+\small
+\begin{enumerate}
+\item Partir de 128.
+\item Le poids tient dans le reste ? \\ bit = 1 et on le retire.
+\item Sinon bit = 0.
+\item Poids suivant, jusqu'à 1.
+\end{enumerate}
+\end{carte}
+\column{.55\linewidth}
+\begin{carte}[tag=À vous,rose]{}
+\small
+\begin{tabular}{@{}l l@{}}
+190 & \reponse[30mm]{10111110 \;(128+32+16+8+4+2)}\\[2mm]
+252 & \reponse[30mm]{11111100 \;(128+64+32+16+8+4)}\\[2mm]
+224 & \reponse[30mm]{11100000 \;(128+64+32)}\\[2mm]
+128 & \reponse[30mm]{10000000}\\
+\end{tabular}
+\end{carte}
+\end{columns}
+\end{frame}
+
+% ------------------------------------------------------------------ 5 masque
+\begin{frame}
+\frametitle{Le masque : des 1, puis des 0}
+\framesubtitle{Masque · notation /n}
+\begin{carte}[tag=/30]{30 bits à 1 = partie réseau, 2 bits à 0 = partie hôte}
+\centering\small
+\begin{tabular}{@{}c c c c@{}}
+\cielfontlabel 11111111 & \cielfontlabel 11111111 & \cielfontlabel 11111111 & \octet[6]{1,1,1,1,1,1,0,0}\\[1mm]
+\cielfontlabel 255 & \cielfontlabel 255 & \cielfontlabel 255 & \cielfontlabel 252\\
+\end{tabular}\par\medskip
+\ip{/30} \;=\; \ip{255.255.255.252}
+\end{carte}
+\vfill
+\begin{callout}[or]\small
+Les 1 sont toujours \textbf{à gauche} et \textbf{contigus} : 255.255.255.\textbf{250} n'est pas un masque.
+\end{callout}
+\end{frame}
+
+% ------------------------------------------------------------------ 6 ET logique
+\begin{frame}
+\frametitle{Adresse ET masque = adresse du réseau}
+\framesubtitle{ET logique · bit à bit}
+\begin{columns}[T]
+\column{.28\linewidth}
+\begin{carte}[tag=Table]{}
+\centering\cielfontlabel
+\begin{tabular}{@{}ccc@{}}
+a & b & a ET b\\\midrule
+0 & 0 & 0\\ 0 & 1 & 0\\ 1 & 0 & 0\\ 1 & 1 & 1\\
+\end{tabular}
+\end{carte}
+\column{.69\linewidth}
+\begin{carte}[tag=R2 · dernier octet]{}
+\small
+\begin{tabular}{@{}l l@{}}
+226 & \octet{1,1,1,0,0,0,1,0}\\[1mm]
+252 & \octet[6]{1,1,1,1,1,1,0,0}\\[1mm]\midrule
+ET  & \reponse[44mm]{\octet[6]{1,1,1,0,0,0,0,0}\; = 224}\\
+\end{tabular}\par\medskip
+Réseau de R2 : \reponse[30mm]{\ip{192.168.10.224/30}}
+\end{carte}
+\end{columns}
+\vfill
+\begin{callout}[vert]\small Un 0 dans le masque efface le bit : il ne reste que la partie réseau.\end{callout}
+\end{frame}
+
+% ------------------------------------------------------------------ 7 taille de bloc
+\begin{frame}
+\frametitle{Taille de bloc = 256 − octet du masque}
+\framesubtitle{Le raccourci}
+\begin{carte}[tag=/30]{256 − 252 = 4 : les réseaux avancent de 4 en 4}
+\centering
+\begin{tikzpicture}[x=1cm]
+  \foreach \v [count=\i] in {.224,.228,.232,.236,.240}{
+    \node[fill=cielicon,text=cieliconfg,rounded corners=1mm,minimum width=17mm,
+      minimum height=7mm,font=\cielfontlabel\small] at (\i*2.1,0) {\v};}
+  \foreach \i in {1,...,4}
+    \draw[-{Triangle[length=2pt]},cielicon,line width=.8pt] (\i*2.1+.9,0) -- (\i*2.1+1.2,0);
+\end{tikzpicture}\par\medskip
+\small Un réseau commence toujours sur un multiple de la taille de bloc.
+\end{carte}
+\vfill
+\begin{columns}[T]
+\column{.48\linewidth}
+\begin{callout}[or]\small /27 : 256 − 224 = \reponse{32} \\ réseaux .0, .32, .64 … .192, .224\end{callout}
+\column{.48\linewidth}
+\begin{callout}[rose]\small /26 : 256 − 192 = \reponse{64} \\ réseaux .0, .64, .128, .192\end{callout}
+\end{columns}
+\end{frame}
+
+% ------------------------------------------------------------------ 8 réponse
+\begin{frame}
+\frametitle{Dans un /30 : 4 adresses, 2 utilisables}
+\framesubtitle{Réponse à l'accroche}
+\begin{carte}[tag=192.168.10.224/30]{}
+\centering
+\begin{tikzpicture}[x=1cm]
+  \foreach \v/\r/\s [count=\i] in {.224/réseau/0,.225/{R1 G0/1}/1,.226/{R2 G0/0}/1,.227/diffusion/0}{
+    \ifnum\s=1
+      \node[fill=cielicon,text=cieliconfg,rounded corners=1mm,minimum width=24mm,
+        minimum height=9mm,font=\cielfontlabel\normalsize] (c\i) at (\i*2.7,0) {\v};
+    \else
+      \node[draw=cielicon,line width=.8pt,text=cielicon,rounded corners=1mm,minimum width=24mm,
+        minimum height=9mm,font=\cielfontlabel\normalsize] (c\i) at (\i*2.7,0) {\v};
+    \fi
+    \node[font=\cielfontlabel\scriptsize,text=cielicon,below=1mm of c\i] {\r};}
+\end{tikzpicture}
+\end{carte}
+\vfill
+\begin{columns}[T]
+\column{.48\linewidth}
+\begin{callout}[vert]\small Une liaison entre deux routeurs = exactement 2 interfaces. \\ Le /30 n'en gaspille aucune.\end{callout}
+\column{.48\linewidth}
+\begin{callout}[rose]\small Avec un /24 pour la même liaison : \reponse{252} adresses perdues.\end{callout}
+\end{columns}
+\end{frame}
+
+% ------------------------------------------------------------------ 9 exercice
+\begin{frame}
+\frametitle{À vous : réseau et diffusion}
+\framesubtitle{Entraînement · 5 minutes}
+\begin{carte}[tag=Exercice,rose]{}
+\small
+\renewcommand{\arraystretch}{1.5}
+\begin{tabular}{@{}M l l l@{}}
+\textrm{\cielfontlabel Adresse} & \cielfontlabel Bloc & \cielfontlabel Réseau & \cielfontlabel Diffusion\\\midrule
+192.168.10.229/30 & \reponse[14mm]{4}  & \reponse[31mm]{\ip{192.168.10.228}} & \reponse[31mm]{\ip{192.168.10.231}}\\
+192.168.10.200/27 & \reponse[14mm]{32} & \reponse[31mm]{\ip{192.168.10.192}} & \reponse[31mm]{\ip{192.168.10.223}}\\
+192.168.10.150/26 & \reponse[14mm]{64} & \reponse[31mm]{\ip{192.168.10.128}} & \reponse[31mm]{\ip{192.168.10.191}}\\
+\end{tabular}
+\end{carte}
+\vfill
+\begin{callout}[or]\small Diffusion = adresse du réseau suivant − 1.\end{callout}
+\end{frame}
+
+% ------------------------------------------------------------------ 10 finale inversée
+\begin{finale}
+\begin{frame}
+\frametitle{À retenir}
+\framesubtitle{Séance 1}
+\begin{columns}[T]
+\column{.3\linewidth}
+\begin{carte}[equal height group=finale,tag=01]{8 bits}
+\small Poids 128, 64, 32, 16, 8, 4, 2, 1. Un octet va de 0 à 255.
+\end{carte}
+\column{.3\linewidth}
+\begin{carte}[equal height group=finale,tag=02]{IP ET masque}
+\small Le ET bit à bit donne l'adresse du réseau.
+\end{carte}
+\column{.3\linewidth}
+\begin{carte}[equal height group=finale,tag=03]{256 − octet}
+\small Taille de bloc : les réseaux en sont des multiples. /30 = 4 adresses.
+\end{carte}
+\end{columns}
+\vfill
+\begin{callout}[or]\small \cielfontlabel Prochaine séance : découper 192.168.10.0/24 en sous-réseaux égaux.\end{callout}
+\end{frame}
+\end{finale}
+
+\end{document}
