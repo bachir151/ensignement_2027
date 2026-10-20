@@ -1,0 +1,13 @@
+# Dossier de compilation (aux, log, PNG de contrôle)
+build/
+# Fichiers auxiliaires LaTeX (compilation hors Makefile)
+*.aux
+*.log
+*.out
+*.toc
+*.nav
+*.snm
+*.vrb
+*.fls
+*.fdb_latexmk
+*.synctex.gz

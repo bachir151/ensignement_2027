@@ -1,0 +1,201 @@
+% TP 3 — Mise en œuvre du plan VLSM fil rouge dans Packet Tracer
+% Compilation : make 03 (versions élève et corrigé) — voir README.md
+\documentclass[10pt,a4paper]{article}
+\usepackage{ciel-tp}
+
+\begin{document}
+\entete{TP 3}{Mettre en œuvre le plan VLSM}{4 h}
+
+\textbf{Objectif.} Construire dans Packet Tracer le réseau de l'entreprise \emph{fil rouge} : VLAN, routage
+inter-VLAN, DHCP et routage statique jusqu'au pare-feu, avec le plan VLSM étudié au chapitre 2.
+Équipements : routeurs \textbf{2911}, commutateurs \textbf{2960-24TT}, PC. Fiche de commandes Cisco autorisée.
+
+% ------------------------------------------------------------------ topologie + plan équipements
+\noindent
+\begin{minipage}[t]{.50\linewidth}\vspace{0pt}
+\centering
+\begin{tikzpicture}[x=1cm,y=1cm]
+  \node[nuage] (NET) at (0,4.35) {Internet};
+  \node[parefeu] (FW) at (0,3) {};
+  \node[routeur] (R2) at (3.2,3) {};
+  \node[routeur] (R1) at (6.4,3) {};
+  \node[switch]  (S1) at (6.4,1.35) {};
+  \node[switch]  (S2) at (2.7,1.35) {};
+  \node[pc] (PP2) at (1.75,0) {};
+  \node[pc] (PI)  at (3.65,0) {};
+  \node[pc] (PP1) at (5.45,0) {};
+  \node[pc] (PA)  at (7.35,0) {};
+  \draw[lien,dashed] (NET) -- (FW);
+  \draw[lien] (FW) -- node[pos=.16,above,itf]{G0/0} node[pos=.84,above,itf]{G0/1}
+                     node[midway,below=1pt,adr]{192.168.10.228/30} (R2);
+  \draw[lien] (R2) -- node[pos=.16,above,itf]{G0/0} node[pos=.84,above,itf]{G0/1}
+                     node[midway,below=1pt,adr]{192.168.10.224/30} (R1);
+  \draw[trunk] (R1) -- node[pos=.2,right,itf]{G0/0} node[pos=.8,right,itf]{G0/1} (S1);
+  \draw[trunk] (S1) -- node[pos=.1,above,itf]{G0/2} node[pos=.9,above,itf]{G0/1}
+                       node[midway,below=1pt,itf]{trunk 802.1Q} (S2);
+  \draw[lien] (S2) -- node[pos=.5,left,itf]{F0/2}  (PP2);
+  \draw[lien] (S2) -- node[pos=.5,right,itf]{F0/21} (PI);
+  \draw[lien] (S1) -- node[pos=.5,left,itf]{F0/1}  (PP1);
+  \draw[lien] (S1) -- node[pos=.5,right,itf]{F0/11} (PA);
+  % noms
+  \node[equip,left=2pt of FW]{FW};
+  \node[equip,above=1pt of R2]{R2};
+  \node[equip,above=1pt of R1]{R1};
+  \node[equip,right=2pt of S1]{SW1};
+  \node[equip,left=2pt of S2]{SW2};
+  \foreach \p/\n/\v in {PP2/PC-P2/10,PI/PC-I1/30,PP1/PC-P1/10,PA/PC-ADM/20}
+    \node[equip,below=2.2mm of \p,align=center]{\n\\[-1pt]{\cielfontlabel\tiny VLAN \v}};
+  \node[adr,right=2pt of NET,align=left]{Lo0 de FW :\\203.0.113.1/32};
+\end{tikzpicture}
+
+\smallskip
+{\footnotesize Trait double = trunk 802.1Q. FW est simulé par un routeur 2911 ;
+sa Loopback0 joue le rôle d'un serveur sur Internet.\par}
+\end{minipage}\hfill
+\begin{minipage}[t]{.48\linewidth}\vspace{0pt}
+\footnotesize
+\begin{tabularx}{\linewidth}{@{}l l X l@{}}
+\toprule\entetetab
+\tete{Équip.} & \tete{Interface} & \tete{Adresse / préfixe} & \tete{Passerelle}\\\midrule
+R1 & G0/0.10 & \trou{192.168.10.126}\,/25 & --\\
+   & G0/0.20 & \trou{192.168.10.190}\,/26 & --\\
+   & G0/0.30 & \trou{192.168.10.222}\,/27 & --\\
+   & G0/1    & 192.168.10.225/30 & --\\
+R2 & G0/0    & 192.168.10.226/30 & --\\
+   & G0/1    & \trou{192.168.10.229}\,/30 & --\\
+FW & G0/0    & \trou{192.168.10.230}\,/30 & --\\
+   & Lo0     & 203.0.113.1/32 & --\\
+SW1 & VLAN 20 & 192.168.10.188/26 & \trou[14mm]{.190}\\
+SW2 & VLAN 20 & 192.168.10.189/26 & \trou[14mm]{.190}\\
+PC-ADM & F0 & 192.168.10.129/26 & \trou[14mm]{.190}\\
+PC-P1, P2, I1 & F0 & DHCP & DHCP\\\bottomrule
+\end{tabularx}
+
+\smallskip
+\begin{tabularx}{\linewidth}{@{}l l l X@{}}
+\toprule\entetetab
+\tete{Câble} & \tete{De} & \tete{Vers} & \tete{Type}\\\midrule
+1 & R1 G0/0 & SW1 G0/1 & droit\\
+2 & SW1 G0/2 & SW2 G0/1 & croisé\\
+3 & R1 G0/1 & R2 G0/0 & croisé\\
+4 & R2 G0/1 & FW G0/0 & croisé\\
+5 & PC & SW (port du tableau) & droit\\\bottomrule
+\end{tabularx}
+
+\smallskip
+\textbf{Conventions.} Passerelle = dernière adresse utilisable. Sur une liaison /30,
+l'équipement le plus proche des LAN prend la 1\textsuperscript{re} adresse.
+Ports d'accès : F0/1–10 en VLAN 10, F0/11–20 en VLAN 20, F0/21–24 en VLAN 30.
+\end{minipage}
+
+% ------------------------------------------------------------------ partie 1
+\partie{Préparer le plan d'adressage et câbler}
+\config Compléter le tableau ci-dessous, puis les cases pointillées du tableau des équipements.
+
+\smallskip
+{\small
+\begin{tabularx}{\linewidth}{@{}l c l l X l c@{}}
+\toprule\entetetab
+\tete{Service} & \tete{VLAN} & \tete{Réseau} & \tete{Masque} & \tete{Plage utilisable} & \tete{Diffusion} & \tete{Nb}\\\midrule
+Production     & 10 & 192.168.10.0/25   & \trou[24mm]{255.255.255.128} & \trou[36mm]{.1 à .126}   & \trou[14mm]{.127} & \trou[7mm]{126}\\
+Administration & 20 & 192.168.10.128/26 & \trou[24mm]{255.255.255.192} & \trou[36mm]{.129 à .190} & \trou[14mm]{.191} & \trou[7mm]{62}\\
+Wi-Fi invité   & 30 & 192.168.10.192/27 & \trou[24mm]{255.255.255.224} & \trou[36mm]{.193 à .222} & \trou[14mm]{.223} & \trou[7mm]{30}\\
+Liaison R1–R2  & -- & 192.168.10.224/30 & \trou[24mm]{255.255.255.252} & \trou[36mm]{.225 à .226} & \trou[14mm]{.227} & \trou[7mm]{2}\\
+Liaison R2–FW  & -- & 192.168.10.228/30 & \trou[24mm]{255.255.255.252} & \trou[36mm]{.229 à .230} & \trou[14mm]{.231} & \trou[7mm]{2}\\\bottomrule
+\end{tabularx}}
+
+\config Dans Packet Tracer : placer les équipements, câbler selon le tableau des câbles, puis sur
+\emph{chaque} routeur et switch : \cmd{hostname}, \cmd{no ip domain-lookup}.
+Renommer les PC (onglet \emph{Config}).
+
+\verif Les voyants des liaisons entre switchs et vers les PC passent au vert
+(ceux des routeurs restent rouges tant que les interfaces sont éteintes).
+
+\question[2]{Quelles adresses de 192.168.10.0/24 restent libres ? Les écrire sous forme de réseaux (adresse/préfixe).}
+{.232 à .255, soit 24 adresses : 192.168.10.232/29 et 192.168.10.240/28 (un seul bloc /27 n'est pas possible : .224 est déjà pris).}
+
+% ------------------------------------------------------------------ partie 2
+\partie{VLAN, trunks et administration des switchs}
+\config Sur SW1 \emph{et} SW2 :
+\begin{itemize}
+  \item créer les VLAN 10 \texttt{PRODUCTION}, 20 \texttt{ADMINISTRATION}, 30 \texttt{INVITES} ;
+  \item affecter les plages de ports en mode \emph{access} (\cmd{interface range}, \cmd{switchport access vlan}) ;
+  \item passer en trunk les ports inter-équipements (SW1 : G0/1 et G0/2 ; SW2 : G0/1), en limitant les VLAN :
+        \cmd{switchport trunk allowed vlan 10,20,30} ;
+  \item interface \cmd{vlan 20} avec l'adresse du tableau, \cmd{no shutdown}, puis \cmd{ip default-gateway}.
+\end{itemize}
+Configurer PC-ADM en adressage statique.
+
+\verif\ \cmd{show vlan brief} (ports dans le bon VLAN) ; \cmd{show interfaces trunk} (VLAN 10,20,30 autorisés et actifs).
+\test\ \cmd{ping 192.168.10.189} depuis SW1 ; \cmd{ping 192.168.10.188} depuis PC-ADM.
+
+\question[2]{PC-P1 (sur SW1) envoie une trame à PC-P2 (sur SW2), tous deux en VLAN 10. Sur quels liens la trame porte-t-elle une étiquette 802.1Q ?}
+{Uniquement sur le trunk SW1 G0/2 – SW2 G0/1 (étiquette VLAN 10). Sur les liens d'accès F0/1 et F0/2, la trame circule sans étiquette.}
+
+% ------------------------------------------------------------------ partie 3
+\partie{Routage inter-VLAN et DHCP sur R1}
+\config Sur R1 :
+\begin{itemize}
+  \item \cmd{no shutdown} sur G0/0 (sans adresse) ;
+  \item une sous-interface par VLAN, G0/0.10, G0/0.20 et G0/0.30 : \cmd{encapsulation dot1Q} \emph{numéro de VLAN}, puis l'adresse de passerelle ;
+  \item DHCP pour les VLAN 10 et 30 : exclure \ip{192.168.10.101}–\ip{.126} (réservées aux équipements fixes) et
+        \ip{192.168.10.222} ; pools \texttt{PRODUCTION} et \texttt{INVITES} (\cmd{network}, \cmd{default-router}).
+\end{itemize}
+Passer PC-P1, PC-P2 et PC-I1 en DHCP.
+
+\verif\ \cmd{show ip interface brief} (sous-interfaces \emph{up/up}) ; \cmd{show ip dhcp binding} (un bail par PC DHCP).
+\test\ de PC-P1 vers PC-I1 et de PC-P2 vers PC-ADM : \cmd{ping}, puis \cmd{tracert} (un seul saut : la passerelle).
+
+\question[2]{Quelle est la plus grande adresse que le serveur DHCP peut attribuer dans le VLAN 30 ? Justifier.}
+{192.168.10.221 : .222 est exclue (passerelle de R1) et .223 est l'adresse de diffusion du /27.}
+
+% ------------------------------------------------------------------ partie 4
+\partie{Liaisons inter-routeurs et routage statique}
+\config Adresser R1 G0/1, R2 G0/0, R2 G0/1, FW G0/0 et la Loopback0 de FW, puis \cmd{no shutdown}. Routes statiques :
+
+\smallskip
+{\small
+\begin{tabularx}{\linewidth}{@{}l X l@{}}
+\toprule\entetetab
+\tete{Routeur} & \tete{Destination} & \tete{Prochain saut}\\\midrule
+R1 & route par défaut \ip{0.0.0.0/0} & \trou[26mm]{192.168.10.226}\\
+R2 & les trois réseaux des VLAN 10, 20, 30 (une route chacun) & \trou[26mm]{192.168.10.225}\\
+R2 & route par défaut \ip{0.0.0.0/0} & \trou[26mm]{192.168.10.230}\\
+FW & \ip{192.168.10.0/24} (une seule route pour tout le site) & \trou[26mm]{192.168.10.229}\\\bottomrule
+\end{tabularx}}
+
+\verif\ \cmd{show ip route} sur chaque routeur : repérer les codes \texttt{C}, \texttt{L}, \texttt{S} et \texttt{S*}.
+\test\ Depuis PC-P1 : \cmd{ping 203.0.113.1}, puis \cmd{tracert 203.0.113.1}
+(sauts attendus : \trou[16mm]{.126}, \trou[16mm]{.226}, \trou[16mm]{.230}).
+
+\question[3]{Sur R2, peut-on remplacer les trois routes vers les VLAN par la seule route \ip{192.168.10.0/24} via R1 sans couper la liaison R2–FW ? Justifier.}
+{Oui : 192.168.10.228/30 est un réseau connecté de R2, plus spécifique (/30) que /24 ; le plus long préfixe l'emporte, le trafic vers FW reste direct. Limite : les adresses libres (.232–.255) seraient envoyées à R1, qui les renverrait par sa route par défaut (boucle jusqu'à expiration du TTL).}
+
+% ------------------------------------------------------------------ partie 5
+\partie{Recette et sauvegarde}
+\test Compléter la matrice (\textbf{OK} / \textbf{X}) avec des \cmd{ping} depuis la source vers la destination.
+
+\smallskip
+{\small
+\begin{tabularx}{\linewidth}{@{}l *{6}{>{\centering\arraybackslash}X}@{}}
+\toprule\entetetab
+\tete{Source \textbackslash\ Dest.} & \tete{PC-P2} & \tete{PC-ADM} & \tete{PC-I1} & \tete{SW2 (.189)} & \tete{R2 (.226)} & \tete{203.0.113.1}\\\midrule
+PC-P1  & \trou[8mm]{OK} & \trou[8mm]{OK} & \trou[8mm]{OK} & \trou[8mm]{OK} & \trou[8mm]{OK} & \trou[8mm]{OK}\\
+PC-I1  & \trou[8mm]{OK} & \trou[8mm]{OK} & -- & \trou[8mm]{OK} & \trou[8mm]{OK} & \trou[8mm]{OK}\\\bottomrule
+\end{tabularx}}
+
+\config Sur chaque équipement : \cmd{copy running-config startup-config}.
+Enregistrer le projet sous \texttt{TP3\_NOM1\_NOM2.pkt} et le déposer sur l'ENT.
+\corrige{\par\smallskip\textit{Remarque : le réseau invité joint tout le site, faute de filtrage ; pas encore d'ACL à ce stade. Configurations complètes : dossier \texttt{packet-tracer/}.}}
+
+% ------------------------------------------------------------------ annexe du corrigé
+\ifcorrige
+\newpage
+{\cielfontlabel\normalsize Annexe du corrigé — configurations complètes}\par\smallskip
+{\footnotesize Fichiers \texttt{packet-tracer/*.txt} : à coller dans le CLI de chaque équipement (mode utilisateur).\par}
+\begin{multicols}{2}
+\foreach \f in {R1,R2,FW,SW1,SW2}{\textbf{\f}\par\ciscofichier{../packet-tracer/\f.txt}\par\medskip}
+\end{multicols}
+\fi
+
+\end{document}

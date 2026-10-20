@@ -1,0 +1,167 @@
+% ciel-beamer.sty — thème beamer « plat moderne » CIEL2 réseau
+% \documentclass[aspectratio=169]{beamer} \usepackage{ciel-beamer}
+%
+% Structure :
+%   \frametitle{Gros titre}  \framesubtitle{EYEBROW}   (l'eyebrow s'affiche AU-DESSUS)
+%   \begin{carte}[tag=Rappel]{Titre} … \end{carte}     carte crème, ombre douce
+%   \begin{carte}[tag=Piège,rose]{…}                   tag rose au lieu d'or
+%   \begin{callout}[or|rose|vert] … \end{callout}       encadré d'accent
+%   \tagor{…} \tagrose{…}                              petites pastilles
+%   \reponse{texte}            réponse visible en version prof, « ? » en version élève
+%   \reponse[largeur]{texte}   idem, réserve la largeur en version élève
+%   \begin{finale} \begin{frame}…\end{frame} \end{finale}   diapo finale inversée
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{ciel-beamer}[2026/10/20 theme beamer CIEL2 reseau]
+
+\RequirePackage{ciel-commun}
+\RequirePackage[most]{tcolorbox}
+\RequirePackage{booktabs,tabularx,array}
+
+% ---------------------------------------------------------------- couleurs
+\definecolor{vert}{HTML}{1C322D}
+\definecolor{creme}{HTML}{F8F3EE}
+\definecolor{or}{HTML}{EBB552}
+\definecolor{rose}{HTML}{F1CDBE}
+\definecolor{gris}{HTML}{A1A1AA}
+\colorlet{vertclair}{vert!80!creme}
+% couleurs « actives » (inversées sur la diapo finale)
+\colorlet{cielfond}{vert}      % fond de diapo
+\colorlet{cielcarte}{creme}    % fond de carte
+\colorlet{cielcartetxt}{vert}  % texte de carte
+\colorlet{cieltitre}{creme}    % gros titre
+% couleurs lues par les pictos TikZ (dans une carte crème)
+\colorlet{cielicon}{vert}
+\colorlet{cieliconfg}{creme}
+\colorlet{cielline}{vert}
+\colorlet{cielbg}{creme}
+\colorlet{cieltext}{vert}
+
+% ---------------------------------------------------------------- beamer
+\usefonttheme{professionalfonts}\usefonttheme{serif}
+\setbeamertemplate{navigation symbols}{}
+\setbeamercolor{background canvas}{bg=cielfond}
+\setbeamercolor{normal text}{fg=creme}
+\setbeamercolor{structure}{fg=or}
+\setbeamercolor{alerted text}{fg=or}
+\setbeamerfont{normal text}{size=\normalsize}
+\setbeamersize{text margin left=12mm,text margin right=12mm}
+\setbeamertemplate{itemize item}{\textcolor{or}{\rule[.35ex]{.8ex}{.8ex}}}
+\setbeamertemplate{itemize subitem}{\textcolor{or}{--}}
+\setbeamertemplate{enumerate item}{\textcolor{or}{\cielfontlabel\insertenumlabel.}}
+
+% eyebrow doré (Inter majuscule espacé) au-dessus du gros titre Baskerville
+\newcommand{\eyebrow}[1]{{\cielfontcaps\scriptsize\color{or}\MakeUppercase{#1}}}
+\setbeamertemplate{frametitle}{%
+  \vskip4mm
+  \ifx\insertframesubtitle\@empty\else\eyebrow{\insertframesubtitle}\par\vskip1.2mm\fi
+  {\fontsize{18}{21}\selectfont\color{cieltitre}\insertframetitle\par}
+  \vskip1mm}
+\setbeamertemplate{frametitle continuation}{}
+
+% pied de page : chapitre à gauche, numéro « 03 / 12 » à droite
+\newcommand{\cielchapitre}{}
+\newcommand{\chapitre}[1]{\renewcommand{\cielchapitre}{#1}}
+\setbeamertemplate{footline}{%
+  \hbox to\paperwidth{\hskip12mm
+    {\cielfontcaps\tiny\color{gris}\MakeUppercase{\cielchapitre}}\hfill
+    {\cielfontlabel\scriptsize\color{or}\two@digits{\insertframenumber}}%
+    {\cielfontlabel\scriptsize\color{gris}\,/\,\two@digits{\inserttotalframenumber}}%
+    \hskip12mm}\vskip4mm}
+
+% page de titre
+\setbeamertemplate{title page}{%
+  \vskip4mm
+  {\cielfontcaps\footnotesize\color{or}\MakeUppercase{\insertsubtitle}\par}
+  \vskip5mm
+  {\fontsize{32}{36}\selectfont\color{creme}\inserttitle\par}
+  \vskip6mm{\color{or}\rule{24mm}{1.2pt}}\vskip5mm
+  {\small\color{gris}\insertauthor\par}
+  {\cielfontlabel\scriptsize\color{gris}\insertdate\par}
+  \vskip3mm
+  \ifcorrige{\cielfontcaps\tiny\color{rose}VERSION PROFESSEUR}\fi}
+
+% ---------------------------------------------------------------- tags & cartes
+\newcommand{\ciel@pill}[3]{% fond, texte, contenu
+  \tikz[baseline=(t.base)]\node[fill=#1,text=#2,rounded corners=1.6mm,inner xsep=2.2mm,
+    inner ysep=1mm,font=\cielfontcaps\tiny](t){\MakeUppercase{#3}};}
+\newcommand{\tagor}[1]{\ciel@pill{or}{vert}{#1}}
+\newcommand{\tagrose}[1]{\ciel@pill{rose}{vert}{#1}}
+\newcommand{\tagvert}[1]{\ciel@pill{vert}{or}{#1}}
+
+\tcbset{
+  ciel carte/.style={enhanced,arc=3mm,boxrule=0pt,colback=cielcarte,colupper=cielcartetxt,
+    left=4mm,right=4mm,top=2.4mm,bottom=2.4mm,
+    drop fuzzy shadow={black!55},
+    fonttitle=\normalsize,coltitle=cielcartetxt,
+    attach title to upper,after title={\par\smallskip},
+    before upper pre={\ciel@txtcolor{cielcartetxt}\raggedright}},
+  tag/.code={\def\ciel@tag{#1}},
+  rose/.code={\def\ciel@tagcmd{\tagrose}},
+}
+\newcommand{\ciel@tag}{}
+\newcommand{\ciel@tagcmd}{\tagor}
+\newtcolorbox{carte}[2][]{ciel carte,
+  code={\def\ciel@tag{}\def\ciel@tagcmd{\tagor}},#1,
+  title={\ifx\ciel@tag\@empty\else\ciel@tagcmd{\ciel@tag}\par\smallskip\fi
+         \ifx\relax#2\relax\else{\large #2}\fi}}
+
+% callouts : rose / or (fond clair, texte vert) ; vert (fond vert, filet or, texte crème)
+% couleur du texte dans une boîte, y compris dans itemize/enumerate (beamer y
+% réimpose la couleur « normal text »)
+\newcommand{\ciel@txtcolor}[1]{\setbeamercolor{normal text}{fg=#1}\usebeamercolor[fg]{normal text}}
+\tcbset{
+  ciel callout/.style={enhanced,arc=2mm,boxrule=0pt,left=3.5mm,right=3.5mm,top=2mm,bottom=2mm},
+  ciel callout or/.style={colback=or,before upper={\ciel@txtcolor{vert}\raggedright}},
+  ciel callout rose/.style={colback=rose,before upper={\ciel@txtcolor{vert}\raggedright}},
+  ciel callout vert/.style={colback=vertclair,before upper={\ciel@txtcolor{creme}\raggedright},
+    borderline west={1.2mm}{0pt}{or}},
+}
+\newtcolorbox{callout}[1][or]{ciel callout,ciel callout #1}
+
+% grand numéro décoratif (étapes de méthode)
+\newcommand{\gros}[1]{{\cielfontlabel\fontsize{22}{22}\selectfont\color{or}#1}}
+
+% ---------------------------------------------------------------- version prof / élève
+\newcommand{\reponse}[2][]{%
+  \ifcorrige{\cielfontlabel\color{ciel@rep}#2}%
+  \else\ifx\relax#1\relax{\cielfontlabel\color{gris}?}%
+       \else\makebox[#1]{\color{gris}\dotfill}\fi\fi}
+\colorlet{ciel@rep}{vert!55!or!70!black}
+% bloc entier réservé à la version prof
+\newcommand{\prof}[1]{\ifcorrige#1\fi}
+
+% ---------------------------------------------------------------- diapo finale inversée
+\newenvironment{finale}{%
+  \colorlet{cielfond}{creme}\colorlet{cielcarte}{vert}\colorlet{cielcartetxt}{creme}%
+  \colorlet{cieltitre}{vert}%
+  \colorlet{cielicon}{creme}\colorlet{cieliconfg}{vert}\colorlet{cielline}{creme}%
+  \colorlet{cielbg}{vert}\colorlet{cieltext}{creme}%
+  \setbeamercolor{background canvas}{bg=creme}\setbeamercolor{normal text}{fg=vert}%
+  \usebeamercolor[fg]{normal text}%
+  \tcbset{ciel carte/.append style={drop fuzzy shadow={black!30}}}}{}
+
+% ---------------------------------------------------------------- octets en binaire
+% \octet[n]{1,1,1,0,0,0,1,0} : 8 cases ; les n premières (partie réseau) en plein
+% \poids : ligne des poids 128…1 (à placer au-dessus d'un \octet)
+\newcommand{\octet}[2][0]{%
+  \begin{tikzpicture}[baseline=(b1.base)]
+    \foreach \b [count=\i] in {#2}{%
+      \ifnum\i>#1\relax
+        \node[draw=cielicon,line width=.6pt,text=cielicon,minimum size=5.6mm,inner sep=0pt,
+          font=\cielfontlabel\small] (b\i) at (\i*6mm,0) {\b};
+      \else
+        \node[fill=cielicon,draw=cielicon,line width=.6pt,text=cieliconfg,minimum size=5.6mm,
+          inner sep=0pt,font=\cielfontlabel\small] (b\i) at (\i*6mm,0) {\b};
+      \fi}
+  \end{tikzpicture}}
+\newcommand{\poids}{%
+  \begin{tikzpicture}[baseline=(p1.base)]
+    \foreach \w [count=\i] in {128,64,32,16,8,4,2,1}
+      \node[minimum width=5.6mm,inner sep=0pt,font=\cielfontlabel\tiny,text=gris!60!black]
+        (p\i) at (\i*6mm,0) {\w};
+  \end{tikzpicture}}
+
+% ---------------------------------------------------------------- tableaux
+\renewcommand{\arraystretch}{1.15}
+\newcolumntype{M}{>{\ttfamily}l}
+\endinput

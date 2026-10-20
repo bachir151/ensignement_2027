@@ -1,0 +1,122 @@
+% ciel-tp.sty — mise en page compacte des TP/TD, impression noir et blanc
+% \documentclass[10pt,a4paper]{article} \usepackage{ciel-tp}
+%
+%   \entete{TP 3}{Titre}{4 h}                 en-tête d'une ligne (pas de page de garde)
+%   \partie{Titre}                             partie numérotée
+%   \config  \verif  \test  \reflexion         étiquettes d'étape (texte lisible en N&B)
+%   \begin{verifs} \item … \end{verifs}        liste à cocher
+%   \question[n]{énoncé}{réponse}              question de réflexion, n lignes de réponse
+%   \trou[largeur]{réponse}                    case à compléter (pointillés / réponse)
+%   \begin{cisco} … \end{cisco}                bloc de commandes (verbatim)
+%   \corrige{…}                                texte présent seulement dans le corrigé
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{ciel-tp}[2026/10/20 mise en page TP CIEL2 reseau]
+
+\RequirePackage[a4paper,margin=1.5cm,top=1.2cm,bottom=1.6cm,footskip=7mm]{geometry}
+\RequirePackage{ciel-commun}
+\RequirePackage{booktabs,tabularx,array,multirow,multicol}
+\RequirePackage{enumitem}
+\RequirePackage{fancyvrb}
+\RequirePackage{fancyhdr,lastpage}
+\RequirePackage{amssymb}
+\RequirePackage[hidelinks]{hyperref}
+
+% ---------------------------------------------------------------- N&B
+\colorlet{cielicon}{black!78}
+\colorlet{cieliconfg}{white}
+\colorlet{cielline}{black}
+\colorlet{cielbg}{white}
+\colorlet{cieltext}{black}
+\colorlet{trame}{black!9}      % fond des en-têtes de tableau
+\colorlet{tramecorr}{black!5}  % fond des réponses du corrigé
+
+% ---------------------------------------------------------------- texte serré
+\setlength{\parindent}{0pt}
+\setlength{\emergencystretch}{2.5em}
+\setlength{\parskip}{2pt plus 1pt}
+\linespread{0.97}
+\setlist{nosep,leftmargin=*,labelsep=.4em}
+\setlist[itemize]{label=\textbullet}
+\setlength{\columnsep}{5mm}
+\renewcommand{\arraystretch}{1.12}
+\setlength{\tabcolsep}{4pt}
+\setlength{\abovetopsep}{0pt}
+\newcommand{\tete}[1]{{\cielfontlabel\small #1}}      % cellule d'en-tête
+\newcommand{\entetetab}{\rowcolor{trame}}
+\RequirePackage{colortbl}
+\setlength{\belowrulesep}{0pt}\setlength{\aboverulesep}{0pt}
+
+% ---------------------------------------------------------------- pied de page
+\pagestyle{fancy}\fancyhf{}
+\renewcommand{\headrulewidth}{0pt}
+\newcommand{\ciel@pied}{}
+\fancyfoot[L]{\cielfontlabel\scriptsize BTS CIEL IR 2\,·\,Réseau\,·\,\ciel@pied}
+\fancyfoot[R]{\cielfontlabel\scriptsize\thepage\,/\,\pageref*{LastPage}}
+\fancyfoot[C]{\ifcorrige\cielfontcaps\scriptsize CORRIGÉ\fi}
+
+% ---------------------------------------------------------------- en-tête d'une ligne
+\newcommand{\ciel@pastille}[1]{\tikz[baseline=(p.base)]\node[fill=black,text=white,
+  rounded corners=1mm,inner xsep=1.6mm,inner ysep=.9mm,font=\cielfontcaps\footnotesize](p){#1};}
+\newcommand{\entete}[3]{% type, titre, durée
+  \renewcommand{\ciel@pied}{#1 — #2}%
+  \noindent\ciel@pastille{\MakeUppercase{#1}}\hspace{2mm}%
+  {\cielfontlabel\large #2}\hfill
+  {\cielfontlabel\footnotesize #3\,·\,CIEL IR 2}\hspace{4mm}%
+  \ifcorrige{\cielfontcaps\footnotesize CORRIGÉ}%
+  \else{\footnotesize Nom :\,\makebox[32mm]{\dotfill}\ Date :\,\makebox[18mm]{\dotfill}}\fi
+  \par\vspace{.6mm}\hrule height .8pt\vspace{1.2mm}}
+
+% ---------------------------------------------------------------- parties et étapes
+\newcounter{partie}
+\newcommand{\partie}[1]{%
+  \par\addvspace{2.2mm}\stepcounter{partie}%
+  \noindent\tikz[baseline=(n.base)]\node[fill=black,text=white,rounded corners=.8mm,
+    minimum width=5mm,inner sep=.9mm,font=\cielfontlabel\small](n){\thepartie};%
+  \hspace{1.6mm}{\cielfontlabel\normalsize #1}\hspace{2mm}\leaders\hrule height .4pt\hfill\null
+  \par\nopagebreak\vspace{.6mm}}
+\newcommand{\ciel@etape}[2]{% style (plein/vide), libellé
+  \par\addvspace{.8mm}\noindent
+  \ifnum#1=1\tikz[baseline=(e.base)]\node[fill=black!78,text=white,inner xsep=1.2mm,
+     inner ysep=.6mm,font=\cielfontcaps\tiny](e){#2};%
+  \else\tikz[baseline=(e.base)]\node[draw=black,line width=.5pt,inner xsep=1.2mm,
+     inner ysep=.6mm,font=\cielfontcaps\tiny](e){#2};\fi\hspace{1.5mm}\ignorespaces}
+\newcommand{\config}{\ciel@etape{1}{CONFIGURATION}}
+\newcommand{\verif}{\ciel@etape{0}{VÉRIFICATION}}
+\newcommand{\test}{\ciel@etape{0}{TEST}}
+\newcommand{\reflexion}{\ciel@etape{1}{RÉFLEXION}}
+
+% ---------------------------------------------------------------- listes à cocher
+\newcommand{\ciel@box}{\raisebox{-.1ex}{\tikz\draw[line width=.5pt](0,0)rectangle(1.6mm,1.6mm);}}
+\newlist{verifs}{itemize}{1}
+\setlist[verifs]{label=\ciel@box,nosep,leftmargin=4.5mm}
+
+% ---------------------------------------------------------------- réponses
+% \trou[largeur]{réponse} : pointillés (élève) / réponse en gras (corrigé)
+\newcommand{\trou}[2][18mm]{%
+  \ifcorrige\textbf{#2}\else\makebox[#1]{\dotfill}\fi}
+% texte présent seulement dans le corrigé
+\newcommand{\corrige}[1]{\ifcorrige#1\fi}
+% \question[n]{énoncé}{réponse}
+\newcommand{\question}[3][2]{%
+  \reflexion #2\par\nopagebreak
+  \ifcorrige
+    \vspace{.5mm}\noindent\begin{tikzpicture}
+      \node[fill=tramecorr,text width=\linewidth-5mm,inner sep=1.6mm,align=left,
+        font=\small](a){\textit{#3}};
+      \draw[line width=1.6pt](a.north west)--(a.south west);
+    \end{tikzpicture}\par
+  \else
+    \vspace{1mm}{\color{black!45}\foreach\i in{1,...,#1}{\noindent\makebox[\linewidth]{\dotfill}\par\vspace{2.6mm}}}%
+  \fi}
+
+% ---------------------------------------------------------------- commandes Cisco
+\DefineVerbatimEnvironment{cisco}{Verbatim}{fontsize=\footnotesize,frame=leftline,
+  framerule=1.2pt,framesep=2mm,xleftmargin=0mm,baselinestretch=.95}
+\newcommand{\ciscofichier}[1]{\VerbatimInput[fontsize=\scriptsize,frame=leftline,
+  framerule=1.2pt,framesep=2mm,baselinestretch=.9]{#1}}
+
+% ---------------------------------------------------------------- encadrés sobres
+\newcommand{\encadre}[2][\linewidth]{% largeur, contenu : cadre fin, sans couleur
+  \noindent\fbox{\parbox{\dimexpr#1-2\fboxsep-2\fboxrule}{#2}}}
+\setlength{\fboxsep}{2mm}\setlength{\fboxrule}{.5pt}
+\endinput
